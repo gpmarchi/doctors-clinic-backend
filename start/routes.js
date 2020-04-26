@@ -17,3 +17,11 @@
 const Route = use('Route')
 
 Route.post('/sessions', 'SessionController.store')
+Route.post('/users', 'UserController.store')
+
+Route.group(() => {
+  Route.get('/users', 'UserController.index')
+  Route.get('/users/:id', 'UserController.show')
+  Route.patch('/users/:id', 'UserController.update')
+  Route.delete('/users/:id', 'UserController.delete')
+}).middleware(['auth'])

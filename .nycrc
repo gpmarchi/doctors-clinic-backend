@@ -13,7 +13,6 @@
     "database"
   ],
   "reporter": [
-    "lcov",
-    "text"
+    "lcov"
   ]
 }

@@ -15,7 +15,7 @@ test('it should return JWT token when session created', async ({
   assert,
 }) => {
   const sessionPayload = {
-    email: 'gustavomarchi@gmail.com',
+    email: 'test@email.com',
     password: '123456',
   }
 
