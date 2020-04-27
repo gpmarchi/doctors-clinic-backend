@@ -24,4 +24,6 @@ Route.group(() => {
   Route.get('/users/:id', 'UserController.show')
   Route.patch('/users/:id', 'UserController.update')
   Route.delete('/users/:id', 'UserController.delete')
+
+  Route.resource('specialties', 'SpecialtyController').apiOnly()
 }).middleware(['auth'])

@@ -39,3 +39,11 @@ Factory.blueprint('App/Models/Address', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Specialty', (faker, i, data = {}) => {
+  return {
+    name: faker.string(),
+    description: faker.sentence(),
+    ...data,
+  }
+})
