@@ -38,6 +38,10 @@ class User extends Model {
   address() {
     return this.hasOne('App/Models/Address')
   }
+
+  specialty() {
+    return this.belongsTo('App/Models/Specialty')
+  }
 }
 
 module.exports = User

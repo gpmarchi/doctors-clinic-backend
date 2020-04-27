@@ -7,6 +7,8 @@ const Factory = use('Factory')
 const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Address = use('App/Models/Address')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Specialty = use('App/Models/Specialty')
 
 const { test, trait, beforeEach } = use('Test/Suite')('User')
 
@@ -18,6 +20,7 @@ let loginUser = null
 beforeEach(async () => {
   await User.truncate()
   await Address.truncate()
+  await Specialty.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -55,6 +58,27 @@ test('it should create a new user with address', async ({ client, assert }) => {
   assert.exists(response.body.username)
   assert.equal(response.body.username, user.username)
   assert.include(response.body.address, address)
+})
+
+test('it should create a new user with specialty', async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').make()
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+
+  const user = userData.$attributes
+  const specialty = { ...specialtyData.$attributes }
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, specialty_id: specialty.id })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.equal(response.body.username, user.username)
+  assert.include(response.body.specialty, specialty)
 })
 
 test("it should create an existing user's address", async ({

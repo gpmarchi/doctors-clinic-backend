@@ -16,6 +16,13 @@ class UserSchema extends Schema {
       table.string('phone').notNullable()
       table.string('token')
       table.timestamp('token_created_at')
+      table
+        .integer('specialty_id')
+        .unsigned()
+        .references('id')
+        .inTable('specialties')
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL')
       table.timestamps()
     })
   }

@@ -37,6 +37,7 @@ class UserController {
       'age',
       'phone',
       'address',
+      'specialty_id',
     ])
 
     const trx = await Database.beginTransaction()
@@ -49,7 +50,7 @@ class UserController {
 
     trx.commit()
 
-    await user.load('address')
+    await user.loadMany(['address', 'specialty'])
 
     return user
   }
