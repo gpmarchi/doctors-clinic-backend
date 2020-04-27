@@ -36,6 +36,16 @@ module.exports = {
         `${Env.get('DB_DATABASE', 'development')}.sqlite`
       ),
     },
+    pool: {
+      min: 2,
+      max: 6,
+      createTimeoutMillis: 3000,
+      acquireTimeoutMillis: 30000,
+      idleTimeoutMillis: 30000,
+      reapIntervalMillis: 1000,
+      createRetryIntervalMillis: 100,
+      propagateCreateError: false,
+    },
     useNullAsDefault: true,
     debug: Env.get('DB_DEBUG', false),
   },
