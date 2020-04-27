@@ -5,6 +5,8 @@ const Factory = use('Factory')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Address = use('App/Models/Address')
 
 const { test, trait, beforeEach } = use('Test/Suite')('User')
 
@@ -15,6 +17,7 @@ let loginUser = null
 
 beforeEach(async () => {
   await User.truncate()
+  await Address.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -36,6 +39,44 @@ test('it should create a new user', async ({ client, assert }) => {
   assert.equal(response.body.username, user.username)
 })
 
+test('it should create a new user with address', async ({ client, assert }) => {
+  const userData = await Factory.model('App/Models/User').make()
+  const addressData = await Factory.model('App/Models/Address').make()
+
+  const user = userData.$attributes
+  const address = { ...addressData.$attributes }
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, address })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.equal(response.body.username, user.username)
+  assert.include(response.body.address, address)
+})
+
+test("it should create an existing user's address", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const addressData = await Factory.model('App/Models/Address').make()
+  const address = { ...addressData.$attributes }
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ address })
+    .end()
+
+  response.assertStatus(200)
+  assert.include(response.body.address, address)
+})
+
 test('it should update an existing user', async ({ client, assert }) => {
   const data = await Factory.model('App/Models/User').create()
 
@@ -52,7 +93,32 @@ test('it should update an existing user', async ({ client, assert }) => {
   assert.equal(response.body.username, 'username')
 })
 
-test('it should not update non existing user', async ({ client, assert }) => {
+test("it should update an existing user's address", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const addressData = await Factory.model('App/Models/Address').create({
+    user_id: user.id,
+  })
+  const address = { ...addressData.$attributes }
+
+  address.street = 'updated street'
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ address })
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.address.street, address.street)
+  assert.equal(response.body.address.district, address.district)
+})
+
+test('it should not update non existing user', async ({ client }) => {
   const response = await client
     .patch('/users/-1')
     .loginVia(loginUser)
@@ -113,7 +179,7 @@ test('it should list a user by id', async ({ client, assert }) => {
   assert.equal(user.username, response.body.username)
 })
 
-test('it should not show non existant user', async ({ client, assert }) => {
+test('it should not show non existent user', async ({ client }) => {
   const response = await client
     .get('/users/-1')
     .loginVia(loginUser)

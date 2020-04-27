@@ -26,3 +26,16 @@ Factory.blueprint('App/Models/User', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Address', (faker, i, data = {}) => {
+  return {
+    street: faker.street(),
+    number: faker.string({ length: 3, alpha: false, numeric: true }),
+    district: faker.province(),
+    city: faker.city(),
+    state: faker.state(),
+    zipcode: faker.zip(),
+    country: faker.country(),
+    ...data,
+  }
+})

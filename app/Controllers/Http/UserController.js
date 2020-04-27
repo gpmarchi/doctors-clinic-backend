@@ -6,6 +6,7 @@
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
+const Database = use('Database')
 
 class UserController {
   /**
@@ -27,9 +28,28 @@ class UserController {
    * @param {Request} ctx.request
    */
   async store({ request }) {
-    const data = request.all()
+    const { address, ...data } = request.only([
+      'username',
+      'email',
+      'password',
+      'first_name',
+      'last_name',
+      'age',
+      'phone',
+      'address',
+    ])
 
-    const user = await User.create(data)
+    const trx = await Database.beginTransaction()
+
+    const user = await User.create(data, trx)
+
+    if (address) {
+      await user.address().create(address, trx)
+    }
+
+    trx.commit()
+
+    await user.load('address')
 
     return user
   }
@@ -59,7 +79,7 @@ class UserController {
    * @param {Response} ctx.response
    */
   async update({ params, request, response, antl }) {
-    const data = request.only([
+    const { address, ...data } = request.only([
       'username',
       'email',
       'password',
@@ -67,6 +87,7 @@ class UserController {
       'last_name',
       'age',
       'phone',
+      'address',
     ])
 
     const user = await User.find(params.id)
@@ -79,7 +100,18 @@ class UserController {
 
     user.merge(data)
 
-    await user.save()
+    const trx = await Database.beginTransaction()
+
+    await user.save(trx)
+
+    if (address) {
+      await user.address().delete()
+      await user.address().create(address, trx)
+    }
+
+    trx.commit()
+
+    await user.load('address')
 
     return user
   }
