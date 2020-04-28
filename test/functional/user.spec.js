@@ -31,7 +31,10 @@ beforeEach(async () => {
 })
 
 test('it should create a new user', async ({ client, assert }) => {
-  const data = await Factory.model('App/Models/User').make()
+  const data = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
 
   const user = data.$attributes
 
@@ -43,7 +46,10 @@ test('it should create a new user', async ({ client, assert }) => {
 })
 
 test('it should create a new user with address', async ({ client, assert }) => {
-  const userData = await Factory.model('App/Models/User').make()
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
   const addressData = await Factory.model('App/Models/Address').make()
 
   const user = userData.$attributes
@@ -60,11 +66,36 @@ test('it should create a new user with address', async ({ client, assert }) => {
   assert.include(response.body.address, address)
 })
 
+test('it should not create a new user with invalid address', async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+  const addressData = await Factory.model('App/Models/Address').make()
+
+  const user = userData.$attributes
+  const address = { ...addressData.$attributes }
+  delete address.street
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, address })
+    .end()
+
+  response.assertStatus(400)
+})
+
 test('it should create a new user with specialty', async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').make()
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
   const specialtyData = await Factory.model('App/Models/Specialty').create()
 
   const user = userData.$attributes
@@ -140,6 +171,29 @@ test("it should update an existing user's address", async ({
   response.assertStatus(200)
   assert.equal(response.body.address.street, address.street)
   assert.equal(response.body.address.district, address.district)
+})
+
+test("it should not update an existing user's invalid address", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const addressData = await Factory.model('App/Models/Address').create({
+    user_id: user.id,
+  })
+  const address = { ...addressData.$attributes }
+
+  delete address.street
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ address })
+    .end()
+
+  response.assertStatus(400)
 })
 
 test('it should not update non existing user', async ({ client }) => {

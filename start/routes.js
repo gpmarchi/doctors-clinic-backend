@@ -17,7 +17,7 @@
 const Route = use('Route')
 
 Route.post('/sessions', 'SessionController.store')
-Route.post('/users', 'UserController.store')
+Route.post('/users', 'UserController.store').validator('User')
 
 Route.group(() => {
   Route.get('/users', 'UserController.index')
@@ -25,5 +25,7 @@ Route.group(() => {
   Route.patch('/users/:id', 'UserController.update')
   Route.delete('/users/:id', 'UserController.delete')
 
-  Route.resource('specialties', 'SpecialtyController').apiOnly()
+  Route.resource('specialties', 'SpecialtyController')
+    .apiOnly()
+    .validator(new Map([[['specialties.store'], ['Specialty']]]))
 }).middleware(['auth'])

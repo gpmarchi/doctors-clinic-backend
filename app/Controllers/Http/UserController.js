@@ -4,6 +4,8 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/auth/src/Schemes/Session')} AuthSession */
 
+const { validate } = use('Validator')
+const AddressValidator = use('App/Validators/Address')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 const Database = use('Database')
@@ -26,8 +28,9 @@ class UserController {
   /**
    * @param {object} ctx
    * @param {Request} ctx.request
+   * @param {Response} ctx.response
    */
-  async store({ request }) {
+  async store({ request, response, antl }) {
     const { address, ...data } = request.only([
       'username',
       'email',
@@ -45,6 +48,17 @@ class UserController {
     const user = await User.create(data, trx)
 
     if (address) {
+      const validation = await validate(
+        address,
+        new AddressValidator().rules,
+        antl.list('validation')
+      )
+
+      if (validation.fails()) {
+        trx.rollback()
+        return response.status(400).send(validation.messages())
+      }
+
       await user.address().create(address, trx)
     }
 
@@ -106,6 +120,17 @@ class UserController {
     await user.save(trx)
 
     if (address) {
+      const validation = await validate(
+        address,
+        new AddressValidator().rules,
+        antl.list('validation')
+      )
+
+      if (validation.fails()) {
+        trx.rollback()
+        return response.status(400).send(validation.messages())
+      }
+
       await user.address().delete()
       await user.address().create(address, trx)
     }
