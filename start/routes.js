@@ -28,4 +28,8 @@ Route.group(() => {
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()
     .validator(new Map([[['specialties.store'], ['Specialty']]]))
+
+  Route.resource('roles', 'RoleController')
+    .apiOnly()
+    .validator(new Map([[['roles.store'], ['Role']]]))
 }).middleware(['auth'])

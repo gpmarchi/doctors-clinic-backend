@@ -47,3 +47,12 @@ Factory.blueprint('App/Models/Specialty', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('Adonis/Acl/Role', (faker, i, data = {}) => {
+  return {
+    slug: faker.string(),
+    name: faker.string(),
+    description: faker.paragraph(),
+    ...data,
+  }
+})
