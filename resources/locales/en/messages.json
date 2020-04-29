@@ -1,5 +1,6 @@
 {
   "user.not.found": "User not found.",
   "specialty.not.found": "Specialty not found.",
-  "role.not.found": "Role not found."
+  "role.not.found": "Role not found.",
+  "permission.not.found": "Permission not found."
 }
