@@ -8,7 +8,7 @@ class SpecialtySchema extends Schema {
     this.create('specialties', (table) => {
       table.increments()
       table.string('name').notNullable()
-      table.string('description')
+      table.text('description')
       table.timestamps()
     })
   }
