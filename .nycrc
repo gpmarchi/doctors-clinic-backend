@@ -8,9 +8,12 @@
     "test{,-*}.{js,cjs,mjs,ts}",
     "**/*{.,-}test.{js,cjs,mjs,ts}",
     "**/__tests__/**",
+    "**/Exceptions/**",
     "node_modules",
     "config",
-    "database"
+    "database",
+    "server.js",
+    "vowfile.js"
   ],
   "reporter": [
     "lcov"
