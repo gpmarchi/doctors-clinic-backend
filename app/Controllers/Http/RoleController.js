@@ -18,7 +18,7 @@ class RoleController {
    * @param {Response} ctx.response
    */
   async index({ request, response }) {
-    const roles = await Role.all()
+    const roles = await Role.query().with('permissions').fetch()
 
     return roles
   }
@@ -29,12 +29,22 @@ class RoleController {
    *
    * @param {object} ctx
    * @param {Request} ctx.request
-   * @param {Response} ctx.response
    */
-  async store({ request, response }) {
-    const data = request.only(['slug', 'name', 'description'])
+  async store({ request }) {
+    const { permissions, ...data } = request.only([
+      'slug',
+      'name',
+      'description',
+      'permissions',
+    ])
 
-    const role = Role.create(data)
+    const role = await Role.create(data)
+
+    if (permissions) {
+      await role.permissions().attach(permissions)
+    }
+
+    await role.load('permissions')
 
     return role
   }
@@ -51,9 +61,11 @@ class RoleController {
 
     if (!role) {
       return response.status(404).send({
-        error: antl.formatMessage('messages.specialty.not.found'),
+        error: antl.formatMessage('messages.role.not.found'),
       })
     }
+
+    await role.load('permissions')
 
     return role
   }
@@ -67,7 +79,12 @@ class RoleController {
    * @param {Response} ctx.response
    */
   async update({ params, request, response, antl }) {
-    const data = request.only(['slug', 'name', 'description'])
+    const { permissions, ...data } = request.only([
+      'slug',
+      'name',
+      'description',
+      'permissions',
+    ])
 
     const role = await Role.find(params.id)
 
@@ -81,6 +98,12 @@ class RoleController {
 
     await role.save()
 
+    if (permissions) {
+      await role.permissions().sync(permissions)
+    }
+
+    await role.load('permissions')
+
     return role
   }
 
@@ -89,10 +112,9 @@ class RoleController {
    * DELETE roles/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response, antl }) {
+  async destroy({ params, response, antl }) {
     const role = await Role.find(params.id)
 
     if (!role) {
