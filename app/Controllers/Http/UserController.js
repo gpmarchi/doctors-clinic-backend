@@ -31,7 +31,7 @@ class UserController {
    * @param {Response} ctx.response
    */
   async store({ request, response, antl }) {
-    const { address, ...data } = request.only([
+    const { address, roles, ...data } = request.only([
       'username',
       'email',
       'password',
@@ -41,6 +41,7 @@ class UserController {
       'phone',
       'address',
       'specialty_id',
+      'roles',
     ])
 
     const trx = await Database.beginTransaction()
@@ -64,7 +65,11 @@ class UserController {
 
     trx.commit()
 
-    await user.loadMany(['address', 'specialty'])
+    if (roles) {
+      await user.roles().attach(roles)
+    }
+
+    await user.loadMany(['address', 'specialty', 'roles'])
 
     return user
   }
@@ -94,7 +99,7 @@ class UserController {
    * @param {Response} ctx.response
    */
   async update({ params, request, response, antl }) {
-    const { address, ...data } = request.only([
+    const { address, roles, ...data } = request.only([
       'username',
       'email',
       'password',
@@ -103,6 +108,8 @@ class UserController {
       'age',
       'phone',
       'address',
+      'specialty_id',
+      'roles',
     ])
 
     const user = await User.find(params.id)
@@ -131,13 +138,17 @@ class UserController {
         return response.status(400).send(validation.messages())
       }
 
-      await user.address().delete()
+      await user.address().delete(trx)
       await user.address().create(address, trx)
+    }
+
+    if (roles) {
+      await user.roles().sync(roles, trx)
     }
 
     trx.commit()
 
-    await user.load('address')
+    await user.loadMany(['address', 'specialty', 'roles'])
 
     return user
   }

@@ -3,12 +3,17 @@
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
+const { ioc } = require('@adonisjs/fold')
+
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Address = use('App/Models/Address')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Specialty = use('App/Models/Specialty')
+
+const Role = ioc.use('Adonis/Acl/Role')
+ioc.use('Adonis/Acl/HasRole')
 
 const { test, trait, beforeEach } = use('Test/Suite')('User')
 
@@ -21,6 +26,7 @@ beforeEach(async () => {
   await User.truncate()
   await Address.truncate()
   await Specialty.truncate()
+  await Role.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -64,6 +70,27 @@ test('it should create a new user with address', async ({ client, assert }) => {
   assert.exists(response.body.username)
   assert.equal(response.body.username, user.username)
   assert.include(response.body.address, address)
+})
+
+test('it should create a new user with role', async ({ client, assert }) => {
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+  const roleData = await Factory.model('Adonis/Acl/Role').create()
+
+  const user = userData.$attributes
+  const role = { ...roleData.$attributes }
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, roles: [role.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.equal(response.body.username, user.username)
+  assert.include(response.body.roles[0], role)
 })
 
 test('it should not create a new user with invalid address', async ({
@@ -171,6 +198,28 @@ test("it should update an existing user's address", async ({
   response.assertStatus(200)
   assert.equal(response.body.address.street, address.street)
   assert.equal(response.body.address.district, address.district)
+})
+
+test("it should update an existing user's roles", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const roleData = await Factory.model('Adonis/Acl/Role').create()
+
+  const role = { ...roleData.$attributes }
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ roles: [role.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.include(response.body, user)
+  assert.include(response.body.roles[0], role)
 })
 
 test("it should not update an existing user's invalid address", async ({
