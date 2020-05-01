@@ -200,6 +200,28 @@ test("it should update an existing user's address", async ({
   assert.equal(response.body.address.district, address.district)
 })
 
+test("it should update an existing user's specialty", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+
+  const specialty = { ...specialtyData.$attributes }
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ specialty_id: specialty.id })
+    .end()
+
+  response.assertStatus(200)
+  assert.include(response.body, user)
+  assert.include(response.body.specialty, specialty)
+})
+
 test("it should update an existing user's roles", async ({
   client,
   assert,
