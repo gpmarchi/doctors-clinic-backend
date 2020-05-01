@@ -15,6 +15,9 @@ const Specialty = use('App/Models/Specialty')
 const Role = ioc.use('Adonis/Acl/Role')
 ioc.use('Adonis/Acl/HasRole')
 
+const Permission = ioc.use('Adonis/Acl/Permission')
+ioc.use('Adonis/Acl/HasPermission')
+
 const { test, trait, beforeEach } = use('Test/Suite')('User')
 
 trait('Test/ApiClient')
@@ -27,6 +30,7 @@ beforeEach(async () => {
   await Address.truncate()
   await Specialty.truncate()
   await Role.truncate()
+  await Permission.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -91,6 +95,30 @@ test('it should create a new user with role', async ({ client, assert }) => {
   assert.exists(response.body.username)
   assert.equal(response.body.username, user.username)
   assert.include(response.body.roles[0], role)
+})
+
+test('it should create a new user with permissions', async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+  const permissionData = await Factory.model('Adonis/Acl/Permission').create()
+
+  const user = userData.$attributes
+  const permission = { ...permissionData.$attributes }
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, permissions: [permission.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.equal(response.body.username, user.username)
+  assert.include(response.body.permissions[0], permission)
 })
 
 test('it should not create a new user with invalid address', async ({
@@ -242,6 +270,28 @@ test("it should update an existing user's roles", async ({
   response.assertStatus(200)
   assert.include(response.body, user)
   assert.include(response.body.roles[0], role)
+})
+
+test("it should update an existing user's permissions", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const permissionData = await Factory.model('Adonis/Acl/Permission').create()
+
+  const permission = { ...permissionData.$attributes }
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ permissions: [permission.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.include(response.body, user)
+  assert.include(response.body.permissions[0], permission)
 })
 
 test("it should not update an existing user's invalid address", async ({
