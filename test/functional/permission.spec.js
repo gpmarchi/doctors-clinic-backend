@@ -2,6 +2,7 @@
 
 const { ioc } = require('@adonisjs/fold')
 
+const Role = ioc.use('Adonis/Acl/Role')
 const Permission = ioc.use('Adonis/Acl/Permission')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
@@ -19,6 +20,7 @@ let loginUser = null
 
 beforeEach(async () => {
   await User.truncate()
+  await Role.truncate()
   await Permission.truncate()
 
   const sessionPayload = {
@@ -26,7 +28,15 @@ beforeEach(async () => {
     password: '123456',
   }
 
+  const adminRolePayload = {
+    slug: 'administrator',
+  }
+
   loginUser = await Factory.model('App/Models/User').create(sessionPayload)
+  const adminRole = await Factory.model('Adonis/Acl/Role').create(
+    adminRolePayload
+  )
+  await loginUser.roles().attach([adminRole.$attributes.id])
 })
 
 test('it should create a new permission', async ({ client, assert }) => {

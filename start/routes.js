@@ -37,4 +37,5 @@ Route.group(() => {
   Route.resource('permissions', 'PermissionController')
     .apiOnly()
     .validator(new Map([[['permissions.store'], ['Permission']]]))
+    .middleware('is:administrator')
 }).middleware(['auth'])
