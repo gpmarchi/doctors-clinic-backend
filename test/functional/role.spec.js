@@ -11,7 +11,7 @@ const Factory = use('Factory')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 
-const { test, trait, beforeEach } = use('Test/Suite')('Role')
+const { test, trait, beforeEach, after } = use('Test/Suite')('Role')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -37,6 +37,10 @@ beforeEach(async () => {
     adminRolePayload
   )
   await loginUser.roles().attach([adminRole.$attributes.id])
+})
+
+after(async () => {
+  await loginUser.roles().delete()
 })
 
 test('it should create a new role', async ({ client, assert }) => {

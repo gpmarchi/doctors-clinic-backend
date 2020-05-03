@@ -18,12 +18,13 @@ ioc.use('Adonis/Acl/HasRole')
 const Permission = ioc.use('Adonis/Acl/Permission')
 ioc.use('Adonis/Acl/HasPermission')
 
-const { test, trait, beforeEach } = use('Test/Suite')('User')
+const { test, trait, beforeEach, after } = use('Test/Suite')('User')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
 let loginUser = null
+let loginAdmin = null
 
 beforeEach(async () => {
   await User.truncate()
@@ -32,12 +33,34 @@ beforeEach(async () => {
   await Role.truncate()
   await Permission.truncate()
 
-  const sessionPayload = {
+  const userSessionPayload = {
     email: 'user@email.com',
     password: '123456',
   }
 
-  loginUser = await Factory.model('App/Models/User').create(sessionPayload)
+  const adminSessionPayload = {
+    email: 'admin@email.com',
+    password: '123456',
+  }
+
+  const adminRolePayload = {
+    slug: 'administrator',
+  }
+
+  loginUser = await Factory.model('App/Models/User').create(userSessionPayload)
+
+  loginAdmin = await Factory.model('App/Models/User').create(
+    adminSessionPayload
+  )
+  const adminRole = await Factory.model('Adonis/Acl/Role').create(
+    adminRolePayload
+  )
+  await loginAdmin.roles().attach([adminRole.$attributes.id])
+})
+
+after(async () => {
+  await loginUser.roles().delete()
+  await loginAdmin.roles().delete()
 })
 
 test('it should create a new user', async ({ client, assert }) => {
@@ -74,51 +97,6 @@ test('it should create a new user with address', async ({ client, assert }) => {
   assert.exists(response.body.username)
   assert.equal(response.body.username, user.username)
   assert.include(response.body.address, address)
-})
-
-test('it should create a new user with role', async ({ client, assert }) => {
-  const userData = await Factory.model('App/Models/User').make({
-    password: 'slkj239ru!',
-    password_confirmation: 'slkj239ru!',
-  })
-  const roleData = await Factory.model('Adonis/Acl/Role').create()
-
-  const user = userData.$attributes
-  const role = { ...roleData.$attributes }
-
-  const response = await client
-    .post('/users')
-    .send({ ...user, roles: [role.id] })
-    .end()
-
-  response.assertStatus(200)
-  assert.exists(response.body.username)
-  assert.equal(response.body.username, user.username)
-  assert.include(response.body.roles[0], role)
-})
-
-test('it should create a new user with permissions', async ({
-  client,
-  assert,
-}) => {
-  const userData = await Factory.model('App/Models/User').make({
-    password: 'slkj239ru!',
-    password_confirmation: 'slkj239ru!',
-  })
-  const permissionData = await Factory.model('Adonis/Acl/Permission').create()
-
-  const user = userData.$attributes
-  const permission = { ...permissionData.$attributes }
-
-  const response = await client
-    .post('/users')
-    .send({ ...user, permissions: [permission.id] })
-    .end()
-
-  response.assertStatus(200)
-  assert.exists(response.body.username)
-  assert.equal(response.body.username, user.username)
-  assert.include(response.body.permissions[0], permission)
 })
 
 test('it should not create a new user with invalid address', async ({
@@ -234,10 +212,13 @@ test("it should update an existing user's specialty", async ({
 }) => {
   const userData = await Factory.model('App/Models/User').create()
   const user = userData.$attributes
+  delete user.created_at
+  delete user.updated_at
 
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-
   const specialty = { ...specialtyData.$attributes }
+  delete specialty.created_at
+  delete specialty.updated_at
 
   const response = await client
     .patch(`/users/${user.id}`)
@@ -263,7 +244,7 @@ test("it should update an existing user's roles", async ({
 
   const response = await client
     .patch(`/users/${user.id}`)
-    .loginVia(loginUser)
+    .loginVia(loginAdmin)
     .send({ roles: [role.id] })
     .end()
 
@@ -272,7 +253,48 @@ test("it should update an existing user's roles", async ({
   assert.include(response.body.roles[0], role)
 })
 
+test("it should not update an existing user's roles if logged in user is not an admin", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const roleData = await Factory.model('Adonis/Acl/Role').create()
+  const role = { ...roleData.$attributes }
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ roles: [role.id] })
+    .end()
+
+  response.assertStatus(403)
+})
+
 test("it should update an existing user's permissions", async ({
+  client,
+  assert,
+}) => {
+  const userData = await Factory.model('App/Models/User').create()
+  const user = userData.$attributes
+
+  const permissionData = await Factory.model('Adonis/Acl/Permission').create()
+
+  const permission = { ...permissionData.$attributes }
+
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginAdmin)
+    .send({ permissions: [permission.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.include(response.body, user)
+  assert.include(response.body.permissions[0], permission)
+})
+
+test("it should not update an existing user's permissions if logged in user is not an admin", async ({
   client,
   assert,
 }) => {
@@ -289,9 +311,7 @@ test("it should update an existing user's permissions", async ({
     .send({ permissions: [permission.id] })
     .end()
 
-  response.assertStatus(200)
-  assert.include(response.body, user)
-  assert.include(response.body.permissions[0], permission)
+  response.assertStatus(403)
 })
 
 test("it should not update an existing user's invalid address", async ({
@@ -360,7 +380,7 @@ test('it should list all users', async ({ client, assert }) => {
   const response = await client.get('/users').loginVia(loginUser).send().end()
 
   response.assertStatus(200)
-  assert.equal(6, response.body.length)
+  assert.equal(7, response.body.length)
 })
 
 test('it should list a user by id', async ({ client, assert }) => {

@@ -31,7 +31,7 @@ class UserController {
    * @param {Response} ctx.response
    */
   async store({ request, response, antl }) {
-    const { address, roles, permissions, ...data } = request.only([
+    const { address, ...data } = request.only([
       'username',
       'email',
       'password',
@@ -41,8 +41,6 @@ class UserController {
       'phone',
       'address',
       'specialty_id',
-      'roles',
-      'permissions',
     ])
 
     const trx = await Database.beginTransaction()
@@ -66,15 +64,7 @@ class UserController {
 
     trx.commit()
 
-    if (roles) {
-      await user.roles().attach(roles)
-    }
-
-    if (permissions) {
-      await user.permissions().attach(permissions)
-    }
-
-    await user.loadMany(['address', 'specialty', 'roles', 'permissions'])
+    await user.loadMany(['address', 'specialty'])
 
     return user
   }
@@ -95,6 +85,8 @@ class UserController {
       })
     }
 
+    await user.loadMany(['address', 'specialty', 'roles', 'permissions'])
+
     return user
   }
 
@@ -102,8 +94,9 @@ class UserController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async update({ params, request, response, antl }) {
+  async update({ params, request, response, antl, auth }) {
     const { address, roles, permissions, ...data } = request.only([
       'username',
       'email',
@@ -117,6 +110,14 @@ class UserController {
       'roles',
       'permissions',
     ])
+
+    const loggedUser = await auth.getUser()
+
+    if ((roles || permissions) && !(await loggedUser.is('administrator'))) {
+      return response.status(403).send({
+        error: antl.formatMessage('messages.roles.permissions.unauthorized'),
+      })
+    }
 
     const user = await User.find(params.id)
 
