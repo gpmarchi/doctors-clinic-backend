@@ -1,7 +1,10 @@
 {
-  "roles.permissions.unauthorized": "Access forbidden. You are not allowed to change roles or permissions.",
+  "update.unauthorized": "Access forbidden. You are not authorized to update this resource.",
+  "delete.unauthorized": "Access forbidden. You are not authorized to delete this resource.",
+  "roles.permissions.unauthorized": "Access forbidden. You are not authorized to change roles or permissions.",
   "user.not.found": "User not found.",
   "specialty.not.found": "Specialty not found.",
   "role.not.found": "Role not found.",
-  "permission.not.found": "Permission not found."
+  "permission.not.found": "Permission not found.",
+  "clinic.not.found": "Clinic not found."
 }

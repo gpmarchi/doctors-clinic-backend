@@ -22,6 +22,13 @@ class AddressSchema extends Schema {
         .inTable('users')
         .onUpdate('CASCADE')
         .onDelete('CASCADE')
+      table
+        .integer('clinic_id')
+        .unsigned()
+        .references('id')
+        .inTable('clinics')
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE')
       table.timestamps()
     })
   }
