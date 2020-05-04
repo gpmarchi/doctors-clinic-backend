@@ -7,13 +7,13 @@ class Address {
 
   get rules() {
     return {
-      street: 'required',
-      number: 'required',
-      district: 'required',
-      city: 'required',
-      state: 'required',
-      zipcode: 'required',
-      country: 'required',
+      street: 'required|string',
+      number: 'required|string',
+      district: 'required|string',
+      city: 'required|string',
+      state: 'required|string',
+      zipcode: 'required|string',
+      country: 'required|string',
     }
   }
 

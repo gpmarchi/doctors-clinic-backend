@@ -7,8 +7,8 @@ class Role {
 
   get rules() {
     return {
-      slug: 'required|unique:roles',
-      name: 'required|unique:roles',
+      slug: 'required|string|unique:roles',
+      name: 'required|string|unique:roles',
     }
   }
 

@@ -7,7 +7,7 @@ class Specialty {
 
   get rules() {
     return {
-      name: 'required',
+      name: 'required|string',
     }
   }
 
