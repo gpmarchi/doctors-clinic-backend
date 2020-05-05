@@ -18,7 +18,7 @@ ioc.use('Adonis/Acl/HasRole')
 const Permission = ioc.use('Adonis/Acl/Permission')
 ioc.use('Adonis/Acl/HasPermission')
 
-const { test, trait, beforeEach, after } = use('Test/Suite')('User')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')('User')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -26,12 +26,9 @@ trait('Auth/Client')
 let loginUser = null
 let loginAdmin = null
 
-beforeEach(async () => {
+before(async () => {
   await User.truncate()
-  await Address.truncate()
-  await Specialty.truncate()
   await Role.truncate()
-  await Permission.truncate()
 
   const userSessionPayload = {
     email: 'user@email.com',
@@ -56,6 +53,14 @@ beforeEach(async () => {
     adminRolePayload
   )
   await loginAdmin.roles().attach([adminRole.$attributes.id])
+})
+
+beforeEach(async () => {
+  await User.query().where('id', '>', '2').delete()
+  await Address.truncate()
+  await Specialty.truncate()
+  await Role.query().where('id', '>', '1').delete()
+  await Permission.truncate()
 })
 
 after(async () => {
@@ -239,7 +244,6 @@ test("it should update an existing user's roles", async ({
   const user = userData.$attributes
 
   const roleData = await Factory.model('Adonis/Acl/Role').create()
-
   const role = { ...roleData.$attributes }
 
   const response = await client

@@ -8,16 +8,15 @@ const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Specialty = use('App/Models/Specialty')
 
-const { test, trait, beforeEach } = use('Test/Suite')('Specialty')
+const { test, trait, before, beforeEach } = use('Test/Suite')('Specialty')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
 let loginUser = null
 
-beforeEach(async () => {
+before(async () => {
   await User.truncate()
-  await Specialty.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -25,6 +24,10 @@ beforeEach(async () => {
   }
 
   loginUser = await Factory.model('App/Models/User').create(sessionPayload)
+})
+
+beforeEach(async () => {
+  await Specialty.truncate()
 })
 
 test('it should create a new specialty', async ({ client, assert }) => {

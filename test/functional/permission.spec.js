@@ -11,17 +11,18 @@ const Factory = use('Factory')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 
-const { test, trait, beforeEach, after } = use('Test/Suite')('Permission')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+  'Permission'
+)
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
 let loginUser = null
 
-beforeEach(async () => {
+before(async () => {
   await User.truncate()
   await Role.truncate()
-  await Permission.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -37,6 +38,10 @@ beforeEach(async () => {
     adminRolePayload
   )
   await loginUser.roles().attach([adminRole.$attributes.id])
+})
+
+beforeEach(async () => {
+  await Permission.truncate()
 })
 
 after(async () => {

@@ -11,32 +11,37 @@ const Factory = use('Factory')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 
-const { test, trait, beforeEach, after } = use('Test/Suite')('Role')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')('Role')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
 let loginUser = null
 
-beforeEach(async () => {
+before(async () => {
   await User.truncate()
   await Role.truncate()
-  await Permission.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
     password: '123456',
   }
 
+  loginUser = await Factory.model('App/Models/User').create(sessionPayload)
+
   const adminRolePayload = {
     slug: 'administrator',
   }
 
-  loginUser = await Factory.model('App/Models/User').create(sessionPayload)
   const adminRole = await Factory.model('Adonis/Acl/Role').create(
     adminRolePayload
   )
   await loginUser.roles().attach([adminRole.$attributes.id])
+})
+
+beforeEach(async () => {
+  await Role.query().where('id', '>', '1').delete()
+  await Permission.truncate()
 })
 
 after(async () => {
