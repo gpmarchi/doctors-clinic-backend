@@ -11,6 +11,18 @@ class Clinic extends Model {
   owner() {
     return this.belongsTo('App/Models/User', 'owner_id', 'id')
   }
+
+  specialties() {
+    return this.belongsToMany(
+      'App/Models/Specialty',
+      'clinic_id',
+      'specialty_id',
+      'id',
+      'id'
+    )
+      .pivotTable('clinic_specialty')
+      .withTimestamps()
+  }
 }
 
 module.exports = Clinic

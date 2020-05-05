@@ -29,6 +29,7 @@ class ClinicController {
       .where('owner_id', loggedUser.id)
       .with('address')
       .with('owner')
+      .with('specialties')
       .fetch()
 
     return clinics
@@ -44,7 +45,12 @@ class ClinicController {
    * @param {AuthSession} ctx.auth
    */
   async store({ request, response, antl, auth }) {
-    const { address, ...data } = request.only(['name', 'cnpj', 'address'])
+    const { address, specialties, ...data } = request.only([
+      'name',
+      'cnpj',
+      'address',
+      'specialties',
+    ])
 
     const owner = await auth.getUser()
 
@@ -69,7 +75,11 @@ class ClinicController {
 
     trx.commit()
 
-    await clinic.loadMany(['address', 'owner'])
+    if (specialties) {
+      await clinic.specialties().attach(specialties)
+    }
+
+    await clinic.loadMany(['address', 'owner', 'specialties'])
 
     return clinic
   }
@@ -99,7 +109,7 @@ class ClinicController {
       })
     }
 
-    await clinic.loadMany(['address', 'owner'])
+    await clinic.loadMany(['address', 'owner', 'specialties'])
 
     return clinic
   }
@@ -114,7 +124,12 @@ class ClinicController {
    * @param {AuthSession} ctx.auth
    */
   async update({ params, request, response, antl, auth }) {
-    const { address, ...data } = request.only(['name', 'cnpj', 'address'])
+    const { address, specialties, ...data } = request.only([
+      'name',
+      'cnpj',
+      'address',
+      'specialties',
+    ])
 
     const loggedUser = await auth.getUser()
 
@@ -154,9 +169,13 @@ class ClinicController {
       await clinic.address().create(address, trx)
     }
 
+    if (specialties) {
+      await clinic.specialties().sync(specialties, trx)
+    }
+
     trx.commit()
 
-    await clinic.loadMany(['address', 'owner'])
+    await clinic.loadMany(['address', 'owner', 'specialties'])
 
     return clinic
   }

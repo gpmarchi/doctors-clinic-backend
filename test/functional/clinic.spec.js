@@ -11,11 +11,13 @@ const User = use('App/Models/User')
 const Address = use('App/Models/Address')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Clinic = use('App/Models/Clinic')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Specialty = use('App/Models/Specialty')
 
 const Role = ioc.use('Adonis/Acl/Role')
 ioc.use('Adonis/Acl/HasRole')
 
-const { test, trait, beforeEach, after } = use('Test/Suite')('Clinic')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')('Clinic')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -24,10 +26,8 @@ let loginUser = null
 let loginAdminOne = null
 let loginAdminTwo = null
 
-beforeEach(async () => {
+before(async () => {
   await User.truncate()
-  await Address.truncate()
-  await Clinic.truncate()
   await Role.truncate()
 
   const userSessionPayload = {
@@ -67,6 +67,12 @@ beforeEach(async () => {
   await loginAdminTwo.roles().attach([adminRole.$attributes.id])
 })
 
+beforeEach(async () => {
+  await Address.truncate()
+  await Clinic.truncate()
+  await Specialty.truncate()
+})
+
 after(async () => {
   await loginUser.roles().delete()
   await loginAdminOne.roles().delete()
@@ -86,6 +92,29 @@ test('it should create a new clinic', async ({ client, assert }) => {
   assert.exists(response.body.id)
   assert.equal(response.body.cnpj, clinic.cnpj)
   assert.equal(response.body.owner.id, loginAdminOne.id)
+})
+
+test('it should create a new clinic with specialties', async ({
+  client,
+  assert,
+}) => {
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+  const specialty = specialtyData.$attributes
+
+  const clinicData = await Factory.model('App/Models/Clinic').make()
+  const clinic = clinicData.$attributes
+
+  const response = await client
+    .post('/clinics')
+    .loginVia(loginAdminOne)
+    .send({ ...clinic, specialties: [specialty.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.id)
+  assert.equal(response.body.cnpj, clinic.cnpj)
+  assert.equal(response.body.owner.id, loginAdminOne.id)
+  assert.include(response.body.specialties[0], specialty)
 })
 
 test('it should create a new clinic with address', async ({
@@ -167,6 +196,31 @@ test('it should update an existing clinic', async ({ client, assert }) => {
   response.assertStatus(200)
   assert.exists(response.body.name)
   assert.equal(response.body.name, 'name')
+})
+
+test("it should update an existing clinic's specialties", async ({
+  client,
+  assert,
+}) => {
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+  const specialty = specialtyData.$attributes
+
+  const clinicData = await Factory.model('App/Models/Clinic').create({
+    owner_id: loginAdminOne.id,
+  })
+
+  const clinic = clinicData.$attributes
+
+  const response = await client
+    .patch(`/clinics/${clinic.id}`)
+    .loginVia(loginAdminOne)
+    .send({ specialties: [specialty.id] })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.name)
+  assert.equal(response.body.name, clinic.name)
+  assert.include(response.body.specialties[0], specialty)
 })
 
 test("it should update an existing clinic's address", async ({
@@ -309,6 +363,32 @@ test('it should list all clinics', async ({ client, assert }) => {
   assert.equal(5, response.body.length)
 })
 
+test('it should list all clinics with specialties', async ({
+  client,
+  assert,
+}) => {
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+  const specialty = specialtyData.$attributes
+
+  const clinics = await Factory.model('App/Models/Clinic').createMany(5, {
+    owner_id: loginAdminOne.id,
+  })
+
+  clinics.map(
+    async (clinic) => await clinic.specialties().attach([specialty.id])
+  )
+
+  const response = await client
+    .get('/clinics')
+    .loginVia(loginAdminOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(5, response.body.length)
+  assert.include(response.body[0].specialties[0], specialty)
+})
+
 test('it should not list clinics from another user', async ({
   client,
   assert,
@@ -342,6 +422,31 @@ test('it should list a clinic by id', async ({ client, assert }) => {
 
   response.assertStatus(200)
   assert.equal(clinic.name, response.body.name)
+})
+
+test('it should list a clinic by id with specialties', async ({
+  client,
+  assert,
+}) => {
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+  const specialty = specialtyData.$attributes
+
+  const clinicData = await Factory.model('App/Models/Clinic').create({
+    owner_id: loginAdminOne.id,
+  })
+  const clinic = clinicData.$attributes
+
+  await clinicData.specialties().attach([specialty.id])
+
+  const response = await client
+    .get(`/clinics/${clinic.id}`)
+    .loginVia(loginAdminOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(clinic.name, response.body.name)
+  assert.include(response.body.specialties[0], specialty)
 })
 
 test("it should not list another user's clinic", async ({ client, assert }) => {
