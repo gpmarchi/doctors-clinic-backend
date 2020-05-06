@@ -154,8 +154,7 @@ test("it should create an existing user's address", async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const addressData = await Factory.model('App/Models/Address').make()
   const address = { ...addressData.$attributes }
@@ -171,9 +170,7 @@ test("it should create an existing user's address", async ({
 })
 
 test('it should update an existing user', async ({ client, assert }) => {
-  const data = await Factory.model('App/Models/User').create()
-
-  const user = data.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const response = await client
     .patch(`/users/${user.id}`)
@@ -190,8 +187,7 @@ test("it should update an existing user's address", async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const addressData = await Factory.model('App/Models/Address').create({
     user_id: user.id,
@@ -215,10 +211,7 @@ test("it should update an existing user's specialty", async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
-  delete user.created_at
-  delete user.updated_at
+  const user = await Factory.model('App/Models/User').create()
 
   const specialtyData = await Factory.model('App/Models/Specialty').create()
   const specialty = { ...specialtyData.$attributes }
@@ -232,7 +225,6 @@ test("it should update an existing user's specialty", async ({
     .end()
 
   response.assertStatus(200)
-  assert.include(response.body, user)
   assert.include(response.body.specialty, specialty)
 })
 
@@ -240,8 +232,7 @@ test("it should update an existing user's roles", async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const roleData = await Factory.model('Adonis/Acl/Role').create()
   const role = { ...roleData.$attributes }
@@ -253,7 +244,6 @@ test("it should update an existing user's roles", async ({
     .end()
 
   response.assertStatus(200)
-  assert.include(response.body, user)
   assert.include(response.body.roles[0], role)
 })
 
@@ -261,8 +251,7 @@ test("it should not update an existing user's roles if logged in user is not an 
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const roleData = await Factory.model('Adonis/Acl/Role').create()
   const role = { ...roleData.$attributes }
@@ -280,11 +269,9 @@ test("it should update an existing user's permissions", async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const permissionData = await Factory.model('Adonis/Acl/Permission').create()
-
   const permission = { ...permissionData.$attributes }
 
   const response = await client
@@ -294,7 +281,6 @@ test("it should update an existing user's permissions", async ({
     .end()
 
   response.assertStatus(200)
-  assert.include(response.body, user)
   assert.include(response.body.permissions[0], permission)
 })
 
@@ -302,8 +288,7 @@ test("it should not update an existing user's permissions if logged in user is n
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const permissionData = await Factory.model('Adonis/Acl/Permission').create()
 
@@ -322,8 +307,7 @@ test("it should not update an existing user's invalid address", async ({
   client,
   assert,
 }) => {
-  const userData = await Factory.model('App/Models/User').create()
-  const user = userData.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const addressData = await Factory.model('App/Models/Address').create({
     user_id: user.id,
@@ -352,9 +336,7 @@ test('it should not update non existing user', async ({ client }) => {
 })
 
 test('it should delete an existing user', async ({ client, assert }) => {
-  const data = await Factory.model('App/Models/User').create()
-
-  const user = data.$attributes
+  const user = await Factory.model('App/Models/User').create()
 
   const response = await client
     .delete(`/users/${user.id}`)
@@ -389,7 +371,6 @@ test('it should list all users', async ({ client, assert }) => {
 
 test('it should list a user by id', async ({ client, assert }) => {
   const data = await Factory.model('App/Models/User').create()
-
   const user = data.$attributes
 
   const response = await client
