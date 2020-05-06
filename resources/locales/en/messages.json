@@ -6,5 +6,6 @@
   "specialty.not.found": "Specialty not found.",
   "role.not.found": "Role not found.",
   "permission.not.found": "Permission not found.",
-  "clinic.not.found": "Clinic not found."
+  "clinic.not.found": "Clinic not found.",
+  "expired.token": "Password reset token expired."
 }

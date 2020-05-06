@@ -17,7 +17,11 @@
 const Route = use('Route')
 
 Route.post('/sessions', 'SessionController.store')
+
 Route.post('/users', 'UserController.store').validator('User')
+
+Route.post('/users/forgot', 'ForgotPasswordController.store')
+Route.patch('/users/forgot', 'ForgotPasswordController.update')
 
 Route.group(() => {
   Route.get('/users', 'UserController.index')
