@@ -21,12 +21,7 @@ let loginUser = null
 before(async () => {
   await User.truncate()
 
-  const userSessionPayload = {
-    email: 'user@email.com',
-    password: '123456',
-  }
-
-  loginUser = await Factory.model('App/Models/User').create(userSessionPayload)
+  loginUser = await Factory.model('App/Models/User').create()
 })
 
 test('it should return reset password token', async ({ client, assert }) => {

@@ -25,20 +25,11 @@ before(async () => {
   await User.truncate()
   await Role.truncate()
 
-  const sessionPayload = {
-    email: 'user@email.com',
-    password: '123456',
-  }
+  loginUser = await Factory.model('App/Models/User').create()
 
-  loginUser = await Factory.model('App/Models/User').create(sessionPayload)
-
-  const adminRolePayload = {
+  const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
-  }
-
-  const adminRole = await Factory.model('Adonis/Acl/Role').create(
-    adminRolePayload
-  )
+  })
   await loginUser.roles().attach([adminRole.$attributes.id])
 })
 

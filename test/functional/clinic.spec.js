@@ -30,38 +30,15 @@ before(async () => {
   await User.truncate()
   await Role.truncate()
 
-  const userSessionPayload = {
-    email: 'user@email.com',
-    password: '123456',
-  }
+  loginUser = await Factory.model('App/Models/User').create()
 
-  const adminOneSessionPayload = {
-    email: 'admin1@email.com',
-    password: '123456',
-  }
-
-  const adminTwoSessionPayload = {
-    email: 'admin2@email.com',
-    password: '123456',
-  }
-
-  const adminRolePayload = {
+  const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
-  }
+  })
 
-  loginUser = await Factory.model('App/Models/User').create(userSessionPayload)
+  loginAdminOne = await Factory.model('App/Models/User').create()
 
-  const adminRole = await Factory.model('Adonis/Acl/Role').create(
-    adminRolePayload
-  )
-
-  loginAdminOne = await Factory.model('App/Models/User').create(
-    adminOneSessionPayload
-  )
-
-  loginAdminTwo = await Factory.model('App/Models/User').create(
-    adminTwoSessionPayload
-  )
+  loginAdminTwo = await Factory.model('App/Models/User').create()
 
   await loginAdminOne.roles().attach([adminRole.$attributes.id])
   await loginAdminTwo.roles().attach([adminRole.$attributes.id])

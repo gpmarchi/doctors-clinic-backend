@@ -3,9 +3,6 @@
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
-/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
-const User = use('App/Models/User')
-
 const { test, trait } = use('Test/Suite')('Session')
 
 trait('Test/ApiClient')
