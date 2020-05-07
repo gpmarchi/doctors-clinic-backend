@@ -24,7 +24,7 @@ Route.post('/users/forgot', 'ForgotPasswordController.store')
 Route.patch('/users/forgot', 'ForgotPasswordController.update')
 
 Route.group(() => {
-  Route.get('/users', 'UserController.index')
+  Route.get('/users', 'UserController.index').middleware('is:administrator')
   Route.get('/users/:id', 'UserController.show')
   Route.patch('/users/:id', 'UserController.update')
   Route.delete('/users/:id', 'UserController.delete')
