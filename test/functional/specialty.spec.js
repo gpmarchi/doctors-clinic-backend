@@ -137,7 +137,7 @@ test('it should list all specialties', async ({ client, assert }) => {
     .end()
 
   response.assertStatus(200)
-  assert.equal(5, response.body.length)
+  assert.equal(5, response.body.data.length)
 })
 
 test('it should show a specialty by id', async ({ client, assert }) => {

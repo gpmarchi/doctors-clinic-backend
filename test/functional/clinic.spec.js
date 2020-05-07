@@ -360,7 +360,7 @@ test('it should list all clinics', async ({ client, assert }) => {
     .end()
 
   response.assertStatus(200)
-  assert.equal(5, response.body.length)
+  assert.equal(5, response.body.data.length)
 })
 
 test('it should list all clinics with specialties', async ({
@@ -385,8 +385,8 @@ test('it should list all clinics with specialties', async ({
     .end()
 
   response.assertStatus(200)
-  assert.equal(5, response.body.length)
-  assert.include(response.body[0].specialties[0], specialty)
+  assert.equal(5, response.body.data.length)
+  assert.include(response.body.data[0].specialties[0], specialty)
 })
 
 test('it should not list clinics from another user', async ({
@@ -404,7 +404,7 @@ test('it should not list clinics from another user', async ({
     .end()
 
   response.assertStatus(200)
-  assert.isEmpty(response.body)
+  assert.isEmpty(response.body.data)
 })
 
 test('it should list a clinic by id', async ({ client, assert }) => {

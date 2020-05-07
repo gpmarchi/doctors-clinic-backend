@@ -18,7 +18,7 @@ class RoleController {
    * @param {Response} ctx.response
    */
   async index({ request, response }) {
-    const roles = await Role.query().with('permissions').fetch()
+    const roles = await Role.query().with('permissions').paginate()
 
     return roles
   }

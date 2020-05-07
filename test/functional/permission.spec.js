@@ -129,7 +129,7 @@ test('it should list all permissions', async ({ client, assert }) => {
     .end()
 
   response.assertStatus(200)
-  assert.equal(5, response.body.length)
+  assert.equal(5, response.body.data.length)
 })
 
 test('it should show a permission by id', async ({ client, assert }) => {

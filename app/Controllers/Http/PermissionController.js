@@ -18,7 +18,7 @@ class PermissionController {
    * @param {Response} ctx.response
    */
   async index({ request, response }) {
-    const permission = await Permission.all()
+    const permission = await Permission.query().paginate()
 
     return permission
   }

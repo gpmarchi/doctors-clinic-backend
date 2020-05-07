@@ -30,7 +30,7 @@ class ClinicController {
       .with('address')
       .with('owner')
       .with('specialties')
-      .fetch()
+      .paginate()
 
     return clinics
   }

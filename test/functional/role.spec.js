@@ -179,7 +179,7 @@ test('it should list all roles', async ({ client, assert }) => {
   const response = await client.get('/roles').loginVia(loginUser).send().end()
 
   response.assertStatus(200)
-  assert.equal(6, response.body.length)
+  assert.equal(6, response.body.data.length)
 })
 
 test('it should list all roles with permissions', async ({
@@ -195,9 +195,9 @@ test('it should list all roles with permissions', async ({
   const response = await client.get('/roles').loginVia(loginUser).send().end()
 
   response.assertStatus(200)
-  assert.equal(2, response.body.length)
-  assert.equal(1, response.body[1].permissions.length)
-  assert.include(response.body[1].permissions[0], permission)
+  assert.equal(2, response.body.data.length)
+  assert.equal(1, response.body.data[1].permissions.length)
+  assert.include(response.body.data[1].permissions[0], permission)
 })
 
 test('it should show a role by id', async ({ client, assert }) => {

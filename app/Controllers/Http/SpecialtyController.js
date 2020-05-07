@@ -19,7 +19,7 @@ class SpecialtyController {
    * @param {Response} ctx.response
    */
   async index({ request, response }) {
-    const specialties = await Specialty.all()
+    const specialties = await Specialty.query().paginate()
 
     return specialties
   }

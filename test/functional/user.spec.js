@@ -366,7 +366,7 @@ test('it should list all users', async ({ client, assert }) => {
   const response = await client.get('/users').loginVia(loginUser).send().end()
 
   response.assertStatus(200)
-  assert.equal(7, response.body.length)
+  assert.equal(7, response.body.data.length)
 })
 
 test('it should list a user by id', async ({ client, assert }) => {

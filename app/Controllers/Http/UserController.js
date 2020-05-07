@@ -20,7 +20,7 @@ class UserController {
    * @param {Response} ctx.response
    */
   async index({ request, response }) {
-    const users = await User.all()
+    const users = await User.query().paginate()
 
     return users
   }
