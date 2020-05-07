@@ -1,4 +1,5 @@
 {
+  "show.unauthorized": "Access forbidden. You are not authorized to show this resource.",
   "update.unauthorized": "Access forbidden. You are not authorized to update this resource.",
   "delete.unauthorized": "Access forbidden. You are not authorized to delete this resource.",
   "roles.permissions.unauthorized": "Access forbidden. You are not authorized to change roles or permissions.",

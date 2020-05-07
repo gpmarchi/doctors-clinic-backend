@@ -30,28 +30,12 @@ before(async () => {
   await User.truncate()
   await Role.truncate()
 
-  const userSessionPayload = {
-    email: 'user@email.com',
-    password: '123456',
-  }
+  loginUser = await Factory.model('App/Models/User').create()
 
-  const adminSessionPayload = {
-    email: 'admin@email.com',
-    password: '123456',
-  }
-
-  const adminRolePayload = {
+  loginAdmin = await Factory.model('App/Models/User').create()
+  const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
-  }
-
-  loginUser = await Factory.model('App/Models/User').create(userSessionPayload)
-
-  loginAdmin = await Factory.model('App/Models/User').create(
-    adminSessionPayload
-  )
-  const adminRole = await Factory.model('Adonis/Acl/Role').create(
-    adminRolePayload
-  )
+  })
   await loginAdmin.roles().attach([adminRole.$attributes.id])
 })
 
@@ -154,13 +138,11 @@ test("it should create an existing user's address", async ({
   client,
   assert,
 }) => {
-  const user = await Factory.model('App/Models/User').create()
-
   const addressData = await Factory.model('App/Models/Address').make()
   const address = { ...addressData.$attributes }
 
   const response = await client
-    .patch(`/users/${user.id}`)
+    .patch(`/users/${loginUser.id}`)
     .loginVia(loginUser)
     .send({ address })
     .end()
@@ -170,10 +152,8 @@ test("it should create an existing user's address", async ({
 })
 
 test('it should update an existing user', async ({ client, assert }) => {
-  const user = await Factory.model('App/Models/User').create()
-
   const response = await client
-    .patch(`/users/${user.id}`)
+    .patch(`/users/${loginUser.id}`)
     .loginVia(loginUser)
     .send({ username: 'username' })
     .end()
@@ -183,21 +163,49 @@ test('it should update an existing user', async ({ client, assert }) => {
   assert.equal(response.body.username, 'username')
 })
 
-test("it should update an existing user's address", async ({
+test('it should update an existing user if admin', async ({
+  client,
+  assert,
+}) => {
+  const response = await client
+    .patch(`/users/${loginUser.id}`)
+    .loginVia(loginAdmin)
+    .send({ username: 'username' })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.equal(response.body.username, 'username')
+})
+
+test('it should not update an existing user if not self or admin', async ({
   client,
   assert,
 }) => {
   const user = await Factory.model('App/Models/User').create()
 
+  const response = await client
+    .patch(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send({ username: 'username' })
+    .end()
+
+  response.assertStatus(403)
+})
+
+test("it should update an existing user's address", async ({
+  client,
+  assert,
+}) => {
   const addressData = await Factory.model('App/Models/Address').create({
-    user_id: user.id,
+    user_id: loginUser.id,
   })
   const address = { ...addressData.$attributes }
 
   address.street = 'updated street'
 
   const response = await client
-    .patch(`/users/${user.id}`)
+    .patch(`/users/${loginUser.id}`)
     .loginVia(loginUser)
     .send({ address })
     .end()
@@ -211,15 +219,13 @@ test("it should update an existing user's specialty", async ({
   client,
   assert,
 }) => {
-  const user = await Factory.model('App/Models/User').create()
-
   const specialtyData = await Factory.model('App/Models/Specialty').create()
   const specialty = { ...specialtyData.$attributes }
   delete specialty.created_at
   delete specialty.updated_at
 
   const response = await client
-    .patch(`/users/${user.id}`)
+    .patch(`/users/${loginUser.id}`)
     .loginVia(loginUser)
     .send({ specialty_id: specialty.id })
     .end()
@@ -307,17 +313,15 @@ test("it should not update an existing user's invalid address", async ({
   client,
   assert,
 }) => {
-  const user = await Factory.model('App/Models/User').create()
-
   const addressData = await Factory.model('App/Models/Address').create({
-    user_id: user.id,
+    user_id: loginUser.id,
   })
   const address = { ...addressData.$attributes }
 
   delete address.street
 
   const response = await client
-    .patch(`/users/${user.id}`)
+    .patch(`/users/${loginUser.id}`)
     .loginVia(loginUser)
     .send({ address })
     .end()
@@ -340,7 +344,7 @@ test('it should delete an existing user', async ({ client, assert }) => {
 
   const response = await client
     .delete(`/users/${user.id}`)
-    .loginVia(loginUser)
+    .loginVia(user)
     .send()
     .end()
 
@@ -348,6 +352,39 @@ test('it should delete an existing user', async ({ client, assert }) => {
 
   response.assertStatus(204)
   assert.isEmpty(deletedUser)
+})
+
+test('it should delete an existing user if admin', async ({
+  client,
+  assert,
+}) => {
+  const user = await Factory.model('App/Models/User').create()
+
+  const response = await client
+    .delete(`/users/${user.id}`)
+    .loginVia(loginAdmin)
+    .send()
+    .end()
+
+  const deletedUser = User.find(user.id)
+
+  response.assertStatus(204)
+  assert.isEmpty(deletedUser)
+})
+
+test('it should not delete an existing user if not self or admin', async ({
+  client,
+  assert,
+}) => {
+  const user = await Factory.model('App/Models/User').create()
+
+  const response = await client
+    .delete(`/users/${user.id}`)
+    .loginVia(loginUser)
+    .send()
+    .end()
+
+  response.assertStatus(403)
 })
 
 test('it should not delete non existing user', async ({ client }) => {
@@ -363,15 +400,39 @@ test('it should not delete non existing user', async ({ client }) => {
 test('it should list all users', async ({ client, assert }) => {
   await Factory.model('App/Models/User').createMany(5)
 
-  const response = await client.get('/users').loginVia(loginUser).send().end()
+  const response = await client.get('/users').loginVia(loginAdmin).send().end()
 
   response.assertStatus(200)
   assert.equal(7, response.body.data.length)
 })
 
 test('it should list a user by id', async ({ client, assert }) => {
-  const data = await Factory.model('App/Models/User').create()
-  const user = data.$attributes
+  const response = await client
+    .get(`/users/${loginUser.id}`)
+    .loginVia(loginUser)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.email, loginUser.email)
+})
+
+test('it should list a user if admin', async ({ client, assert }) => {
+  const response = await client
+    .get(`/users/${loginUser.id}`)
+    .loginVia(loginAdmin)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.email, loginUser.email)
+})
+
+test('it should not list a user if not self or admin', async ({
+  client,
+  assert,
+}) => {
+  const user = await Factory.model('App/Models/User').create()
 
   const response = await client
     .get(`/users/${user.id}`)
@@ -379,8 +440,7 @@ test('it should list a user by id', async ({ client, assert }) => {
     .send()
     .end()
 
-  response.assertStatus(200)
-  assert.equal(user.username, response.body.username)
+  response.assertStatus(403)
 })
 
 test('it should not show non existent user', async ({ client }) => {

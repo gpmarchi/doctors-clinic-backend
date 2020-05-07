@@ -75,13 +75,22 @@ class UserController {
    *
    * @param {object} ctx
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async show({ params, response, antl }) {
+  async show({ params, response, antl, auth }) {
     const user = await User.find(params.id)
 
     if (!user) {
       return response.status(404).send({
         error: antl.formatMessage('messages.user.not.found'),
+      })
+    }
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== user.id && !(await loggedUser.is('administrator'))) {
+      return response.status(403).send({
+        error: antl.formatMessage('messages.show.unauthorized'),
       })
     }
 
@@ -127,6 +136,12 @@ class UserController {
       })
     }
 
+    if (loggedUser.id !== user.id && !(await loggedUser.is('administrator'))) {
+      return response.status(403).send({
+        error: antl.formatMessage('messages.update.unauthorized'),
+      })
+    }
+
     user.merge(data)
 
     const trx = await Database.beginTransaction()
@@ -167,13 +182,22 @@ class UserController {
   /**
    * @param {object} ctx
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async delete({ params, response, antl }) {
+  async delete({ params, response, antl, auth }) {
     const user = await User.find(params.id)
 
     if (!user) {
       return response.status(404).send({
         error: antl.formatMessage('messages.user.not.found'),
+      })
+    }
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== user.id && !(await loggedUser.is('administrator'))) {
+      return response.status(403).send({
+        error: antl.formatMessage('messages.delete.unauthorized'),
       })
     }
 
