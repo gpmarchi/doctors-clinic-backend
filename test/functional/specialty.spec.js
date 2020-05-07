@@ -1,5 +1,9 @@
 'use strict'
 
+const { ioc } = require('@adonisjs/fold')
+
+const Role = ioc.use('Adonis/Acl/Role')
+
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -8,7 +12,9 @@ const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Specialty = use('App/Models/Specialty')
 
-const { test, trait, before, beforeEach } = use('Test/Suite')('Specialty')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+  'Specialty'
+)
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -17,6 +23,7 @@ let loginUser = null
 
 before(async () => {
   await User.truncate()
+  await Role.truncate()
 
   const sessionPayload = {
     email: 'user@email.com',
@@ -24,10 +31,23 @@ before(async () => {
   }
 
   loginUser = await Factory.model('App/Models/User').create(sessionPayload)
+
+  const adminRolePayload = {
+    slug: 'administrator',
+  }
+
+  const adminRole = await Factory.model('Adonis/Acl/Role').create(
+    adminRolePayload
+  )
+  await loginUser.roles().attach([adminRole.$attributes.id])
 })
 
 beforeEach(async () => {
   await Specialty.truncate()
+})
+
+after(async () => {
+  await loginUser.roles().delete()
 })
 
 test('it should create a new specialty', async ({ client, assert }) => {
