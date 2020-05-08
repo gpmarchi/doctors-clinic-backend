@@ -29,6 +29,9 @@ Route.group(() => {
   Route.patch('/users/:id', 'UserController.update')
   Route.delete('/users/:id', 'UserController.delete')
 
+  Route.post('/files', 'FileController.store')
+  Route.get('/files/:id', 'FileController.show')
+
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()
     .validator(new Map([[['specialties.store'], ['Specialty']]]))
