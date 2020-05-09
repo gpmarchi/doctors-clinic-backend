@@ -32,22 +32,24 @@ class User extends Model {
     ]
   }
 
-  /**
-   * A relationship on tokens is required for auth to
-   * work. Since features like `refreshTokens` or
-   * `rememberToken` will be saved inside the
-   * tokens table.
-   *
-   * @method tokens
-   *
-   * @return {Object}
-   */
+  static get computed() {
+    return ['fullname']
+  }
+
+  getFullname({ first_name, last_name }) {
+    return `${first_name} ${last_name}`
+  }
+
   tokens() {
     return this.hasMany('App/Models/Token')
   }
 
   address() {
     return this.hasOne('App/Models/Address')
+  }
+
+  avatar() {
+    return this.belongsTo('App/Models/File', 'avatar_id', 'id')
   }
 
   specialty() {

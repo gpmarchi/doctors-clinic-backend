@@ -40,6 +40,7 @@ class UserController {
       'age',
       'phone',
       'address',
+      'avatar_id',
       'specialty_id',
     ])
 
@@ -64,7 +65,7 @@ class UserController {
 
     trx.commit()
 
-    await user.loadMany(['address', 'specialty'])
+    await user.loadMany(['address', 'specialty', 'avatar'])
 
     return user
   }

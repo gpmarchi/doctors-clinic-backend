@@ -17,6 +17,13 @@ class UserSchema extends Schema {
       table.string('token')
       table.timestamp('token_created_at')
       table
+        .integer('avatar_id')
+        .unsigned()
+        .references('id')
+        .inTable('files')
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL')
+      table
         .integer('specialty_id')
         .unsigned()
         .references('id')

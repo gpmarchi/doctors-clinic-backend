@@ -10,6 +10,8 @@ const path = use('path')
 const fs = use('fs')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const File = use('App/Models/File')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 
 const { test, trait, before, after } = use('Test/Suite')('File')
@@ -20,6 +22,7 @@ trait('Auth/Client')
 let loginUser = null
 
 before(async () => {
+  await File.truncate()
   await User.truncate()
 
   loginUser = await Factory.model('App/Models/User').create()

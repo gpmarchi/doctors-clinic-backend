@@ -11,6 +11,8 @@ const User = use('App/Models/User')
 const Address = use('App/Models/Address')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Specialty = use('App/Models/Specialty')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const File = use('App/Models/File')
 
 const Role = ioc.use('Adonis/Acl/Role')
 ioc.use('Adonis/Acl/HasRole')
@@ -29,6 +31,7 @@ let loginAdmin = null
 before(async () => {
   await User.truncate()
   await Role.truncate()
+  await File.truncate()
 
   loginUser = await Factory.model('App/Models/User').create()
 
@@ -64,6 +67,30 @@ test('it should create a new user', async ({ client, assert }) => {
 
   response.assertStatus(200)
   assert.exists(response.body.username)
+  assert.exists(response.body.fullname)
+  assert.equal(response.body.username, user.username)
+  assert.equal(response.body.fullname, `${user.first_name} ${user.last_name}`)
+})
+
+test('it should create a new user with avatar', async ({ client, assert }) => {
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+  const user = userData.$attributes
+
+  const fileData = await Factory.model('App/Models/File').create()
+  const file = fileData.$attributes
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, avatar_id: file.id })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.id)
+  assert.exists(response.body.username)
+  assert.exists(response.body.avatar)
   assert.equal(response.body.username, user.username)
 })
 
