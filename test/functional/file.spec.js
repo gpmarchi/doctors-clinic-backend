@@ -61,3 +61,26 @@ test('it should download a file', async ({ client, assert }) => {
   response.assertHeader('content-type', 'image/svg+xml')
   assert.isTrue(Buffer.isBuffer(response.body))
 })
+
+test('it should not create new file if file not present in request', async ({
+  client,
+  assert,
+}) => {
+  const fileFixture = path.join(
+    Helpers.appRoot(),
+    'test',
+    'fixtures',
+    'avatar.svg'
+  )
+
+  const response = await client
+    .post('/files')
+    .loginVia(loginUser)
+    .attach('avatar', fileFixture)
+    .end()
+
+  const files = fs.readdirSync(Helpers.tmpPath('uploads'))
+
+  response.assertStatus(400)
+  assert.equal(1, files.length)
+})

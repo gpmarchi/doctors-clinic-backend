@@ -21,8 +21,12 @@ class FileController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
-    if (!request.file('file')) return
+  async store({ request, response, antl }) {
+    if (!request.file('file')) {
+      return response
+        .status(400)
+        .send({ error: antl.formatMessage('messages.request.file.not.found') })
+    }
 
     const upload = request.file('file', { size: '2mb' })
 
