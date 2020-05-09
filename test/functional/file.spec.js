@@ -51,6 +51,7 @@ test('it should create a new file', async ({ client, assert }) => {
   assert.exists(response.body.name)
   assert.exists(response.body.type)
   assert.exists(response.body.subtype)
+  assert.exists(response.body.url)
   assert.equal(1, files.length)
 })
 
