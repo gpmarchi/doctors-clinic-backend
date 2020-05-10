@@ -34,7 +34,7 @@ class SpecialtyController {
   async store({ request }) {
     const data = request.only(['name', 'description'])
 
-    const specialty = Specialty.create(data)
+    const specialty = await Specialty.create(data)
 
     return specialty
   }

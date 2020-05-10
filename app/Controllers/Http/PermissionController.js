@@ -34,7 +34,7 @@ class PermissionController {
   async store({ request, response }) {
     const data = request.only(['slug', 'name', 'description'])
 
-    const permission = Permission.create(data)
+    const permission = await Permission.create(data)
 
     return permission
   }
