@@ -8,6 +8,7 @@
   "role.not.found": "Role not found.",
   "permission.not.found": "Permission not found.",
   "clinic.not.found": "Clinic not found.",
+  "medicine.not.found": "Medicine not found.",
   "expired.token": "Password reset token expired.",
   "request.file.not.found": "File not found in request."
 }

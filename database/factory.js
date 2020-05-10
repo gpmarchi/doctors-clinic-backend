@@ -83,3 +83,12 @@ Factory.blueprint('App/Models/File', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Medicine', (faker, i, data = {}) => {
+  return {
+    name: faker.string(),
+    active_ingredient: faker.string(),
+    contra_indications: faker.paragraph(),
+    ...data,
+  }
+})

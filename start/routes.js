@@ -51,4 +51,9 @@ Route.group(() => {
     .apiOnly()
     .validator(new Map([[['clinics.store'], ['Clinic']]]))
     .middleware('is:administrator')
+
+  Route.resource('medicines', 'MedicineController')
+    .apiOnly()
+    .validator(new Map([[['medicines.store'], ['Medicine']]]))
+    .middleware('is:administrator')
 }).middleware(['auth'])
