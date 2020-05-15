@@ -92,3 +92,11 @@ Factory.blueprint('App/Models/Medicine', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Exam', (faker, i, data = {}) => {
+  return {
+    name: faker.string(),
+    description: faker.paragraph(),
+    ...data,
+  }
+})
