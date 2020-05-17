@@ -10,6 +10,7 @@
   "clinic.not.found": "Clinic not found.",
   "medicine.not.found": "Medicine not found.",
   "exam.not.found": "Exam not found.",
+  "condition.not.found": "Condition not found.",
   "expired.token": "Password reset token expired.",
   "request.file.not.found": "File not found in request."
 }

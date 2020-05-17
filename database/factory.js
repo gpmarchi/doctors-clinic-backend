@@ -100,3 +100,11 @@ Factory.blueprint('App/Models/Exam', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Condition', (faker, i, data = {}) => {
+  return {
+    name: faker.string(),
+    description: faker.sentence(),
+    ...data,
+  }
+})
