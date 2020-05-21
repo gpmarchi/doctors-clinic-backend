@@ -287,10 +287,10 @@ test('it should delete an existing clinic', async ({ client, assert }) => {
     .send()
     .end()
 
-  const deleteClinic = Clinic.find(clinic.id)
+  const deletedClinic = Clinic.find(clinic.id)
 
   response.assertStatus(204)
-  assert.isEmpty(deleteClinic)
+  assert.isEmpty(deletedClinic)
 })
 
 test('it should not delete an existing clinic if not owner', async ({

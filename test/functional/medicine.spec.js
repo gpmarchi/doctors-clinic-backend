@@ -141,7 +141,7 @@ test('it should delete an existent medicine', async ({ client, assert }) => {
   assert.isEmpty(deletedMedicine)
 })
 
-test('it should not delete non existent medicne', async ({ client }) => {
+test('it should not delete non existent medicine', async ({ client }) => {
   const response = await client
     .delete('/medicines/-1')
     .loginVia(loginUser)
