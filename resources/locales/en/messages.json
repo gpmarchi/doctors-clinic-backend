@@ -1,4 +1,5 @@
 {
+  "insert.unauthorized": "Access forbidden. You are not authorized to insert this resource.",
   "show.unauthorized": "Access forbidden. You are not authorized to show this resource.",
   "update.unauthorized": "Access forbidden. You are not authorized to update this resource.",
   "delete.unauthorized": "Access forbidden. You are not authorized to delete this resource.",
@@ -11,6 +12,8 @@
   "medicine.not.found": "Medicine not found.",
   "exam.not.found": "Exam not found.",
   "condition.not.found": "Condition not found.",
+  "timetable.not.found": "Timetable not found.",
   "expired.token": "Password reset token expired.",
-  "request.file.not.found": "File not found in request."
+  "request.file.not.found": "File not found in request.",
+  "doctor.id.required": "Doctor registration number required."
 }

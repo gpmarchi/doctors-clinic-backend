@@ -108,3 +108,10 @@ Factory.blueprint('App/Models/Condition', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Timetable', (faker, i, data = {}) => {
+  return {
+    datetime: faker.timestamp(),
+    ...data,
+  }
+})

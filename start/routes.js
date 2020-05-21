@@ -66,4 +66,9 @@ Route.group(() => {
     .apiOnly()
     .validator(new Map([[['conditions.store'], ['Condition']]]))
     .middleware('is:administrator')
+
+  Route.resource('timetables', 'TimetableController')
+    .apiOnly()
+    .validator(new Map([[['timetables.store'], ['Timetable']]]))
+    .middleware('is:(doctor or administrator)')
 }).middleware(['auth'])
