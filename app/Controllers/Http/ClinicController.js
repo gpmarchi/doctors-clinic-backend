@@ -105,7 +105,7 @@ class ClinicController {
 
     if (clinic.owner_id !== loggedUser.id) {
       return response.status(403).send({
-        error: antl.formatMessage('messages.update.unauthorized'),
+        error: antl.formatMessage('messages.show.unauthorized'),
       })
     }
 
