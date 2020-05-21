@@ -43,7 +43,7 @@ after(async () => {
 })
 
 test('it should create a new condition', async ({ client, assert }) => {
-  const conditionData = await Factory.model('App/Models/Medicine').make()
+  const conditionData = await Factory.model('App/Models/Condition').make()
   const condition = conditionData.$attributes
 
   const response = await client
