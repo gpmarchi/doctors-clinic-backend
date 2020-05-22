@@ -11,6 +11,8 @@ const Factory = use('Factory')
 const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Specialty = use('App/Models/Specialty')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Clinic = use('App/Models/Clinic')
 
 const { test, trait, before, beforeEach, after } = use('Test/Suite')(
   'Specialty'
@@ -35,6 +37,7 @@ before(async () => {
 
 beforeEach(async () => {
   await Specialty.truncate()
+  await Clinic.truncate()
 })
 
 after(async () => {
@@ -144,6 +147,34 @@ test('it should show a specialty by id', async ({ client, assert }) => {
 
   response.assertStatus(200)
   assert.equal(specialty.name, response.body.name)
+})
+
+test('it should list a specialty by id with clinics', async ({
+  client,
+  assert,
+}) => {
+  const specialtyData = await Factory.model('App/Models/Specialty').create()
+  const specialty = specialtyData.$attributes
+
+  const clinics = await Factory.model('App/Models/Clinic').createMany(5, {
+    owner_id: loginUser.id,
+  })
+
+  const associations = clinics.map(
+    async (clinic) => await clinic.specialties().attach([specialty.id])
+  )
+
+  await Promise.all(associations)
+
+  const response = await client
+    .get(`/specialties/${specialty.id}`)
+    .loginVia(loginUser)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.name, specialty.name)
+  assert.equal(response.body.clinics.length, 5)
 })
 
 test('it should not show non existent specialty', async ({

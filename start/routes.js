@@ -34,8 +34,15 @@ Route.group(() => {
 
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()
+    .except(['index', 'show'])
     .validator(new Map([[['specialties.store'], ['Specialty']]]))
     .middleware('is:administrator')
+  Route.get('/specialties', 'SpecialtyController.index').middleware(
+    'is:(pacient or administrator)'
+  )
+  Route.get('/specialties/:id', 'SpecialtyController.show').middleware(
+    'is:(pacient or administrator)'
+  )
 
   Route.resource('roles', 'RoleController')
     .apiOnly()

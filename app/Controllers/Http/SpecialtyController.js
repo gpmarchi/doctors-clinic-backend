@@ -55,6 +55,8 @@ class SpecialtyController {
       })
     }
 
+    await specialty.load('clinics')
+
     return specialty
   }
 
