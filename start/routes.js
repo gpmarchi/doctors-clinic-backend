@@ -32,6 +32,10 @@ Route.group(() => {
   Route.post('/files', 'FileController.store')
   Route.get('/files/:id', 'FileController.show')
 
+  Route.get('/schedules', 'ClinicScheduleController.index').middleware(
+    'is:pacient'
+  )
+
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()
     .except(['index', 'show'])

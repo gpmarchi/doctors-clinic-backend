@@ -23,6 +23,19 @@ class Clinic extends Model {
       .pivotTable('clinic_specialty')
       .withTimestamps()
   }
+
+  timetables() {
+    return this.belongsToMany(
+      'App/Models/User',
+      'clinic_id',
+      'doctor_id',
+      'id',
+      'id'
+    )
+      .pivotTable('timetables')
+      .withPivot(['datetime'])
+      .withTimestamps()
+  }
 }
 
 module.exports = Clinic

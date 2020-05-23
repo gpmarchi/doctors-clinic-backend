@@ -15,5 +15,7 @@
   "timetable.not.found": "Timetable not found.",
   "expired.token": "Password reset token expired.",
   "request.file.not.found": "File not found in request.",
-  "doctor.id.required": "Doctor registration number required."
+  "doctor.id.required": "Doctor registration number required.",
+  "specialty.not.provided": "Please provide the specialty.",
+  "clinic.not.provided": "Please provide the clinic."
 }
