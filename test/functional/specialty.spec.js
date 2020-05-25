@@ -32,7 +32,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginUser.roles().attach([adminRole.$attributes.id])
+  await loginUser.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -47,7 +47,7 @@ after(async () => {
 test('it should create a new specialty', async ({ client, assert }) => {
   const data = await Factory.model('App/Models/Specialty').make()
 
-  const specialty = data.$attributes
+  const specialty = data.toJSON()
 
   const response = await client
     .post('/specialties')
@@ -63,7 +63,7 @@ test('it should create a new specialty', async ({ client, assert }) => {
 test('it should update an existent specialty', async ({ client, assert }) => {
   const data = await Factory.model('App/Models/Specialty').create()
 
-  const specialty = data.$attributes
+  const specialty = data.toJSON()
 
   specialty.description = 'updated description'
 
@@ -94,7 +94,7 @@ test('it should not update non existent specialty', async ({
 test('it should delete an existent specialty', async ({ client, assert }) => {
   const data = await Factory.model('App/Models/Specialty').create()
 
-  const specialty = data.$attributes
+  const specialty = data.toJSON()
 
   const response = await client
     .delete(`/specialties/${specialty.id}`)
@@ -137,7 +137,7 @@ test('it should list all specialties', async ({ client, assert }) => {
 test('it should show a specialty by id', async ({ client, assert }) => {
   const data = await Factory.model('App/Models/Specialty').create()
 
-  const specialty = data.$attributes
+  const specialty = data.toJSON()
 
   const response = await client
     .get(`/specialties/${specialty.id}`)
@@ -154,7 +154,7 @@ test('it should list a specialty by id with clinics', async ({
   assert,
 }) => {
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = specialtyData.$attributes
+  const specialty = specialtyData.toJSON()
 
   const clinics = await Factory.model('App/Models/Clinic').createMany(5, {
     owner_id: loginUser.id,

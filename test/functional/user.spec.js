@@ -39,7 +39,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginAdmin.roles().attach([adminRole.$attributes.id])
+  await loginAdmin.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -80,7 +80,7 @@ test('it should create a new user with avatar', async ({ client, assert }) => {
   const user = userData.$attributes
 
   const fileData = await Factory.model('App/Models/File').create()
-  const file = fileData.$attributes
+  const file = fileData.toJSON()
 
   const response = await client
     .post('/users')
@@ -102,7 +102,7 @@ test('it should create a new user with address', async ({ client, assert }) => {
   const addressData = await Factory.model('App/Models/Address').make()
 
   const user = userData.$attributes
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
 
   const response = await client
     .post('/users')
@@ -126,7 +126,7 @@ test('it should not create a new user with invalid address', async ({
   const addressData = await Factory.model('App/Models/Address').make()
 
   const user = userData.$attributes
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
   delete address.street
 
   const response = await client
@@ -148,7 +148,7 @@ test('it should create a new user with specialty', async ({
   const specialtyData = await Factory.model('App/Models/Specialty').create()
 
   const user = userData.$attributes
-  const specialty = { ...specialtyData.$attributes }
+  const specialty = { ...specialtyData.toJSON() }
 
   const response = await client
     .post('/users')
@@ -166,7 +166,7 @@ test("it should create an existing user's address", async ({
   assert,
 }) => {
   const addressData = await Factory.model('App/Models/Address').make()
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
 
   const response = await client
     .patch(`/users/${loginUser.id}`)
@@ -227,7 +227,7 @@ test("it should update an existing user's address", async ({
   const addressData = await Factory.model('App/Models/Address').create({
     user_id: loginUser.id,
   })
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
 
   address.street = 'updated street'
 
@@ -247,7 +247,7 @@ test("it should update an existing user's specialty", async ({
   assert,
 }) => {
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = { ...specialtyData.$attributes }
+  const specialty = { ...specialtyData.toJSON() }
   delete specialty.created_at
   delete specialty.updated_at
 
@@ -268,7 +268,7 @@ test("it should update an existing user's roles", async ({
   const user = await Factory.model('App/Models/User').create()
 
   const roleData = await Factory.model('Adonis/Acl/Role').create()
-  const role = { ...roleData.$attributes }
+  const role = { ...roleData.toJSON() }
 
   const response = await client
     .patch(`/users/${user.id}`)
@@ -287,7 +287,7 @@ test("it should not update an existing user's roles if logged in user is not an 
   const user = await Factory.model('App/Models/User').create()
 
   const roleData = await Factory.model('Adonis/Acl/Role').create()
-  const role = { ...roleData.$attributes }
+  const role = { ...roleData.toJSON() }
 
   const response = await client
     .patch(`/users/${user.id}`)
@@ -305,7 +305,7 @@ test("it should update an existing user's permissions", async ({
   const user = await Factory.model('App/Models/User').create()
 
   const permissionData = await Factory.model('Adonis/Acl/Permission').create()
-  const permission = { ...permissionData.$attributes }
+  const permission = { ...permissionData.toJSON() }
 
   const response = await client
     .patch(`/users/${user.id}`)
@@ -325,7 +325,7 @@ test("it should not update an existing user's permissions if logged in user is n
 
   const permissionData = await Factory.model('Adonis/Acl/Permission').create()
 
-  const permission = { ...permissionData.$attributes }
+  const permission = { ...permissionData.toJSON() }
 
   const response = await client
     .patch(`/users/${user.id}`)
@@ -343,7 +343,7 @@ test("it should not update an existing user's invalid address", async ({
   const addressData = await Factory.model('App/Models/Address').create({
     user_id: loginUser.id,
   })
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
 
   delete address.street
 

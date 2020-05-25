@@ -40,8 +40,8 @@ before(async () => {
 
   loginAdminTwo = await Factory.model('App/Models/User').create()
 
-  await loginAdminOne.roles().attach([adminRole.$attributes.id])
-  await loginAdminTwo.roles().attach([adminRole.$attributes.id])
+  await loginAdminOne.roles().attach([adminRole.toJSON().id])
+  await loginAdminTwo.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -57,7 +57,7 @@ after(async () => {
 
 test('it should create a new clinic', async ({ client, assert }) => {
   const clinicData = await Factory.model('App/Models/Clinic').make()
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .post('/clinics')
@@ -76,10 +76,10 @@ test('it should create a new clinic with specialties', async ({
   assert,
 }) => {
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = specialtyData.$attributes
+  const specialty = specialtyData.toJSON()
 
   const clinicData = await Factory.model('App/Models/Clinic').make()
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .post('/clinics')
@@ -101,8 +101,8 @@ test('it should create a new clinic with address', async ({
   const clinicData = await Factory.model('App/Models/Clinic').make()
   const addressData = await Factory.model('App/Models/Address').make()
 
-  const clinic = clinicData.$attributes
-  const address = { ...addressData.$attributes }
+  const clinic = clinicData.toJSON()
+  const address = { ...addressData.toJSON() }
 
   const response = await client
     .post('/clinics')
@@ -123,8 +123,8 @@ test('it should not create a new clinic with invalid address', async ({
   const clinicData = await Factory.model('App/Models/Clinic').make()
   const addressData = await Factory.model('App/Models/Address').make()
 
-  const clinic = clinicData.$attributes
-  const address = { ...addressData.$attributes }
+  const clinic = clinicData.toJSON()
+  const address = { ...addressData.toJSON() }
   delete address.street
 
   const response = await client
@@ -145,7 +145,7 @@ test("it should create an existing clinic's address", async ({
   })
 
   const addressData = await Factory.model('App/Models/Address').make()
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
 
   const response = await client
     .patch(`/clinics/${clinicData.id}`)
@@ -162,7 +162,7 @@ test('it should update an existing clinic', async ({ client, assert }) => {
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .patch(`/clinics/${clinic.id}`)
@@ -180,13 +180,13 @@ test("it should update an existing clinic's specialties", async ({
   assert,
 }) => {
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = specialtyData.$attributes
+  const specialty = specialtyData.toJSON()
 
   const clinicData = await Factory.model('App/Models/Clinic').create({
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .patch(`/clinics/${clinic.id}`)
@@ -207,12 +207,12 @@ test("it should update an existing clinic's address", async ({
   const clinicData = await Factory.model('App/Models/Clinic').create({
     owner_id: loginAdminOne.id,
   })
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const addressData = await Factory.model('App/Models/Address').create({
     clinic_id: clinic.id,
   })
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
 
   address.street = 'updated street'
 
@@ -242,7 +242,7 @@ test('it should not update clinic if not owner', async ({ client, assert }) => {
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .patch(`/clinics/${clinic.id}`)
@@ -262,7 +262,7 @@ test("it should not update an existing clinic's address with bad data", async ({
   })
 
   const addressData = await Factory.model('App/Models/Address').make()
-  const address = { ...addressData.$attributes }
+  const address = { ...addressData.toJSON() }
   delete address.street
 
   const response = await client
@@ -279,7 +279,7 @@ test('it should delete an existing clinic', async ({ client, assert }) => {
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .delete(`/clinics/${clinic.id}`)
@@ -301,7 +301,7 @@ test('it should not delete an existing clinic if not owner', async ({
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .delete(`/clinics/${clinic.id}`)
@@ -345,7 +345,7 @@ test('it should list all clinics with specialties', async ({
   assert,
 }) => {
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = specialtyData.$attributes
+  const specialty = specialtyData.toJSON()
 
   const clinics = await Factory.model('App/Models/Clinic').createMany(5, {
     owner_id: loginAdminOne.id,
@@ -389,7 +389,7 @@ test('it should list a clinic by id', async ({ client, assert }) => {
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .get(`/clinics/${clinic.id}`)
@@ -406,12 +406,12 @@ test('it should list a clinic by id with specialties', async ({
   assert,
 }) => {
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = specialtyData.$attributes
+  const specialty = specialtyData.toJSON()
 
   const clinicData = await Factory.model('App/Models/Clinic').create({
     owner_id: loginAdminOne.id,
   })
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   await clinicData.specialties().attach([specialty.id])
 
@@ -431,7 +431,7 @@ test("it should not list another user's clinic", async ({ client, assert }) => {
     owner_id: loginAdminOne.id,
   })
 
-  const clinic = clinicData.$attributes
+  const clinic = clinicData.toJSON()
 
   const response = await client
     .get(`/clinics/${clinic.id}`)

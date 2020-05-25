@@ -28,7 +28,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginUser.roles().attach([adminRole.$attributes.id])
+  await loginUser.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -42,7 +42,7 @@ after(async () => {
 test('it should create a new permission', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Permission').make()
 
-  const permission = data.$attributes
+  const permission = data.toJSON()
 
   const response = await client
     .post('/permissions')
@@ -58,7 +58,7 @@ test('it should create a new permission', async ({ client, assert }) => {
 test('it should update an existent permission', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Permission').create()
 
-  const permission = data.$attributes
+  const permission = data.toJSON()
 
   permission.name = 'updated name'
 
@@ -86,7 +86,7 @@ test('it should not update non existent permission', async ({ client }) => {
 test('it should delete an existent permission', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Permission').create()
 
-  const permission = data.$attributes
+  const permission = data.toJSON()
 
   const response = await client
     .delete(`/permissions/${permission.id}`)
@@ -126,7 +126,7 @@ test('it should list all permissions', async ({ client, assert }) => {
 test('it should show a permission by id', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Permission').create()
 
-  const permission = data.$attributes
+  const permission = data.toJSON()
 
   const response = await client
     .get(`/permissions/${permission.id}`)

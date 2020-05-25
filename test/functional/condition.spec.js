@@ -31,7 +31,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginUser.roles().attach([adminRole.$attributes.id])
+  await loginUser.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -44,7 +44,7 @@ after(async () => {
 
 test('it should create a new condition', async ({ client, assert }) => {
   const conditionData = await Factory.model('App/Models/Condition').make()
-  const condition = conditionData.$attributes
+  const condition = conditionData.toJSON()
 
   const response = await client
     .post('/conditions')
@@ -62,10 +62,10 @@ test('it should create a new condition with specialty', async ({
   assert,
 }) => {
   const conditionData = await Factory.model('App/Models/Condition').make()
-  const condition = conditionData.$attributes
+  const condition = conditionData.toJSON()
 
   const specialtyData = await Factory.model('App/Models/Specialty').create()
-  const specialty = specialtyData.$attributes
+  const specialty = specialtyData.toJSON()
 
   const response = await client
     .post('/conditions')
@@ -82,7 +82,7 @@ test('it should create a new condition with specialty', async ({
 
 test('it should update an existent condition', async ({ client, assert }) => {
   const conditionData = await Factory.model('App/Models/Condition').create()
-  const condition = conditionData.$attributes
+  const condition = conditionData.toJSON()
 
   condition.name = 'updated description'
 

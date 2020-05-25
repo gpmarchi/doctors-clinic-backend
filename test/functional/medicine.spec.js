@@ -29,7 +29,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginUser.roles().attach([adminRole.$attributes.id])
+  await loginUser.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -42,7 +42,7 @@ after(async () => {
 
 test('it should create a new medicine', async ({ client, assert }) => {
   const medicineData = await Factory.model('App/Models/Medicine').make()
-  const medicine = medicineData.$attributes
+  const medicine = medicineData.toJSON()
 
   const response = await client
     .post('/medicines')
@@ -60,10 +60,10 @@ test('it should create a new medicine with leaflet', async ({
   assert,
 }) => {
   const medicineData = await Factory.model('App/Models/Medicine').make()
-  const medicine = medicineData.$attributes
+  const medicine = medicineData.toJSON()
 
   const fileData = await Factory.model('App/Models/File').create()
-  const file = fileData.$attributes
+  const file = fileData.toJSON()
 
   const response = await client
     .post('/medicines')
@@ -80,7 +80,7 @@ test('it should create a new medicine with leaflet', async ({
 
 test('it should update an existent medicine', async ({ client, assert }) => {
   const medicineData = await Factory.model('App/Models/Medicine').create()
-  const medicine = medicineData.$attributes
+  const medicine = medicineData.toJSON()
 
   medicine.name = 'updated description'
 

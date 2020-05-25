@@ -29,7 +29,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginUser.roles().attach([adminRole.$attributes.id])
+  await loginUser.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -42,7 +42,7 @@ after(async () => {
 
 test('it should create a new exam', async ({ client, assert }) => {
   const examData = await Factory.model('App/Models/Exam').make()
-  const exam = examData.$attributes
+  const exam = examData.toJSON()
 
   const response = await client
     .post('/exams')
@@ -57,7 +57,7 @@ test('it should create a new exam', async ({ client, assert }) => {
 
 test('it should update an existent exam', async ({ client, assert }) => {
   const examData = await Factory.model('App/Models/Exam').create()
-  const exam = examData.$attributes
+  const exam = examData.toJSON()
 
   exam.name = 'updated name'
 

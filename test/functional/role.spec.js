@@ -27,7 +27,7 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
-  await loginUser.roles().attach([adminRole.$attributes.id])
+  await loginUser.roles().attach([adminRole.toJSON().id])
 })
 
 beforeEach(async () => {
@@ -42,7 +42,7 @@ after(async () => {
 test('it should create a new role', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Role').make()
 
-  const role = data.$attributes
+  const role = data.toJSON()
 
   const response = await client
     .post('/roles')
@@ -64,8 +64,8 @@ test('it should create a new role with permissions', async ({
     'Adonis/Acl/Permission'
   ).createMany(2)
 
-  const role = roleData.$attributes
-  const permissions = permissionData.map((permission) => permission.$attributes)
+  const role = roleData.toJSON()
+  const permissions = permissionData.map((permission) => permission.toJSON())
 
   const response = await client
     .post('/roles')
@@ -84,7 +84,7 @@ test('it should create a new role with permissions', async ({
 test('it should update an existent role', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Role').create()
 
-  const role = data.$attributes
+  const role = data.toJSON()
 
   role.name = 'updated name'
 
@@ -108,10 +108,10 @@ test('it should update an existent role with permissions', async ({
     'Adonis/Acl/Permission'
   ).createMany(2)
 
-  const role = roleData.$attributes
+  const role = roleData.toJSON()
   role.name = 'updated name'
 
-  const permissions = permissionData.map((permission) => permission.$attributes)
+  const permissions = permissionData.map((permission) => permission.toJSON())
 
   const response = await client
     .patch(`/roles/${role.id}`)
@@ -140,7 +140,7 @@ test('it should not update non existent role', async ({ client }) => {
 test('it should delete an existent role', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Role').create()
 
-  const role = data.$attributes
+  const role = data.toJSON()
 
   const response = await client
     .delete(`/roles/${role.id}`)
@@ -178,7 +178,7 @@ test('it should list all roles with permissions', async ({
   assert,
 }) => {
   const permissionData = await Factory.model('Adonis/Acl/Permission').create()
-  const permission = permissionData.$attributes
+  const permission = permissionData.toJSON()
 
   const role = await Factory.model('Adonis/Acl/Role').create()
   await role.permissions().attach([permission.id])
@@ -194,7 +194,7 @@ test('it should list all roles with permissions', async ({
 test('it should show a role by id', async ({ client, assert }) => {
   const data = await Factory.model('Adonis/Acl/Role').create()
 
-  const role = data.$attributes
+  const role = data.toJSON()
 
   const response = await client
     .get(`/roles/${role.id}`)
@@ -211,12 +211,12 @@ test('it should show a role by id with permissions', async ({
   assert,
 }) => {
   const permissionData = await Factory.model('Adonis/Acl/Permission').create()
-  const permission = permissionData.$attributes
+  const permission = permissionData.toJSON()
 
   const data = await Factory.model('Adonis/Acl/Role').create()
   await data.permissions().attach([permission.id])
 
-  const role = data.$attributes
+  const role = data.toJSON()
 
   const response = await client
     .get(`/roles/${role.id}`)

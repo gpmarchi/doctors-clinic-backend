@@ -41,17 +41,17 @@ before(async () => {
   const specialtyCheck = await Factory.model('App/Models/Specialty').create()
 
   pacient = await Factory.model('App/Models/User').create()
-  await pacient.roles().attach([pacientRole.$attributes.id])
+  await pacient.roles().attach([pacientRole.toJSON().id])
 
   doctor = await Factory.model('App/Models/User').create({
     specialty_id: specialty.id,
   })
-  await doctor.roles().attach([doctorRole.$attributes.id])
+  await doctor.roles().attach([doctorRole.toJSON().id])
 
   const doctorCheck = await Factory.model('App/Models/User').create({
     specialty_id: specialtyCheck.id,
   })
-  await doctor.roles().attach([doctorRole.$attributes.id])
+  await doctor.roles().attach([doctorRole.toJSON().id])
 
   clinic = await Factory.model('App/Models/Clinic').create()
   await clinic.specialties().attach([specialty.id, specialtyCheck.id])

@@ -42,13 +42,13 @@ before(async () => {
   })
 
   loginDoctorOne = await Factory.model('App/Models/User').create()
-  await loginDoctorOne.roles().attach([doctorRole.$attributes.id])
+  await loginDoctorOne.roles().attach([doctorRole.toJSON().id])
 
   loginDoctorTwo = await Factory.model('App/Models/User').create()
-  await loginDoctorTwo.roles().attach([doctorRole.$attributes.id])
+  await loginDoctorTwo.roles().attach([doctorRole.toJSON().id])
 
   loginAdmin = await Factory.model('App/Models/User').create()
-  await loginAdmin.roles().attach([adminRole.$attributes.id])
+  await loginAdmin.roles().attach([adminRole.toJSON().id])
 
   clinicData = await Factory.model('App/Models/Clinic').create()
 })
@@ -67,7 +67,7 @@ test('it should create a new timetable', async ({ client, assert }) => {
   const timetableData = await Factory.model('App/Models/Timetable').make({
     clinic_id: clinicData.id,
   })
-  const timetable = timetableData.$attributes
+  const timetable = timetableData.toJSON()
 
   const response = await client
     .post('/timetables')
@@ -91,7 +91,7 @@ test("it shouldn't create a new timetable to another doctor if not admin", async
     clinic_id: clinicData.id,
     doctor_id: loginDoctorOne.id,
   })
-  const timetable = timetableData.$attributes
+  const timetable = timetableData.toJSON()
 
   const response = await client
     .post('/timetables')
@@ -108,7 +108,7 @@ test('it should provide doctor id to create a new timetable if admin', async ({
   const timetableData = await Factory.model('App/Models/Timetable').make({
     clinic_id: clinicData.id,
   })
-  const timetable = timetableData.$attributes
+  const timetable = timetableData.toJSON()
 
   const response = await client
     .post('/timetables')
@@ -127,7 +127,7 @@ test('it should create a new timetable for doctor if admin', async ({
     doctor_id: loginDoctorTwo.id,
     clinic_id: clinicData.id,
   })
-  const timetable = timetableData.$attributes
+  const timetable = timetableData.toJSON()
 
   const response = await client
     .post('/timetables')
@@ -219,7 +219,7 @@ test('it should delete an existing timetable', async ({ client, assert }) => {
     clinic_id: clinicData.id,
   })
 
-  const timetable = timetableData.$attributes
+  const timetable = timetableData.toJSON()
 
   const response = await client
     .delete(`/timetables/${timetable.id}`)
