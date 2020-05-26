@@ -39,7 +39,7 @@ class ClinicScheduleController {
       .with('address')
       .with('timetables', (builder) =>
         builder
-          .where('specialty_id', specialty_id)
+          .where({ specialty_id, scheduled: false })
           .select(['first_name', 'last_name', 'avatar_id'])
           .orderBy('datetime', 'asc')
           .with('avatar')
