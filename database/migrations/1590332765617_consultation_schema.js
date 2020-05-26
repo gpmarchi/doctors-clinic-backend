@@ -3,12 +3,20 @@
 /** @type {import('@adonisjs/lucid/src/Schema')} */
 const Schema = use('Schema')
 
-class TimetableSchema extends Schema {
+class ConsultationSchema extends Schema {
   up() {
-    this.create('timetables', (table) => {
+    this.create('consultations', (table) => {
       table.increments()
       table.timestamp('datetime').notNullable()
-      table.boolean('scheduled').notNullable().defaultTo(false)
+      table.boolean('is_return').notNullable().defaultTo(false)
+      table
+        .integer('pacient_id')
+        .unsigned()
+        .references('id')
+        .inTable('users')
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE')
+        .notNullable()
       table
         .integer('doctor_id')
         .unsigned()
@@ -30,8 +38,8 @@ class TimetableSchema extends Schema {
   }
 
   down() {
-    this.drop('timetables')
+    this.drop('consultations')
   }
 }
 
-module.exports = TimetableSchema
+module.exports = ConsultationSchema

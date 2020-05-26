@@ -1,10 +1,14 @@
 {
-  "insert.unauthorized": "Access forbidden. You are not authorized to insert this resource.",
-  "show.unauthorized": "Access forbidden. You are not authorized to show this resource.",
+  "insert.unauthorized": "Access forbidden. You are not authorized to create this resource.",
+  "show.unauthorized": "Access forbidden. You are not authorized to view this resource.",
   "update.unauthorized": "Access forbidden. You are not authorized to update this resource.",
-  "delete.unauthorized": "Access forbidden. You are not authorized to delete this resource.",
+  "delete.unauthorized": "Access forbidden. You are not authorized to remove this resource.",
   "roles.permissions.unauthorized": "Access forbidden. You are not authorized to change roles or permissions.",
   "user.not.found": "User not found.",
+  "user.is.not.doctor": "User is not a doctor",
+  "user.is.not.patient": "User is not a patient",
+  "doctor.not.found": "Doctor not found.",
+  "pacient.not.found": "Pacient not found.",
   "specialty.not.found": "Specialty not found.",
   "role.not.found": "Role not found.",
   "permission.not.found": "Permission not found.",
@@ -13,9 +17,13 @@
   "exam.not.found": "Exam not found.",
   "condition.not.found": "Condition not found.",
   "timetable.not.found": "Timetable not found.",
+  "timetable.datetime.already.registered": "Datetime already registered for the doctor",
   "expired.token": "Password reset token expired.",
   "request.file.not.found": "File not found in request.",
-  "doctor.id.required": "Doctor registration number required.",
+  "doctor.id.required": "Doctor identification number required.",
+  "pacient.id.required": "Pacient identification number required.",
   "specialty.not.provided": "Please provide the specialty.",
-  "clinic.not.provided": "Please provide the clinic."
+  "clinic.not.provided": "Please provide the clinic.",
+  "date.not.available": "The selected date is not available for consultation.",
+  "date.already.scheduled": "The selected date is already scheduled"
 }

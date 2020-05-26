@@ -82,4 +82,9 @@ Route.group(() => {
     .apiOnly()
     .validator(new Map([[['timetables.store'], ['Timetable']]]))
     .middleware('is:(doctor or administrator)')
+
+  Route.resource('consultations', 'ConsultationController')
+    .apiOnly()
+    .validator(new Map([[['consultations.store'], ['Consultation']]]))
+    .middleware('is:(patient or assistant)')
 }).middleware(['auth'])

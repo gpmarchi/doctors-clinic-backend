@@ -112,6 +112,15 @@ Factory.blueprint('App/Models/Condition', (faker, i, data = {}) => {
 Factory.blueprint('App/Models/Timetable', (faker, i, data = {}) => {
   return {
     datetime: faker.timestamp(),
+    scheduled: faker.bool({ likelihood: 0 }),
+    ...data,
+  }
+})
+
+Factory.blueprint('App/Models/Consultation', (faker, i, data = {}) => {
+  return {
+    datetime: faker.timestamp(),
+    is_return: faker.bool({ likelihood: 0 }),
     ...data,
   }
 })
