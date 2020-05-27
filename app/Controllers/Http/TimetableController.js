@@ -43,11 +43,7 @@ class TimetableController {
    * @param {AuthSession} ctx.auth
    */
   async store({ request, response, auth, antl }) {
-    const { doctor_id, ...data } = request.only([
-      'datetime',
-      'clinic_id',
-      'doctor_id',
-    ])
+    const { doctor_id, datetime, clinic_id } = request.all()
 
     const loggedUser = await auth.getUser()
 
@@ -67,8 +63,23 @@ class TimetableController {
         .send({ error: antl.formatMessage('messages.doctor.id.required') })
     }
 
+    const timetables = (
+      await Timetable.query()
+        .where({ datetime, doctor_id: doctor_id || loggedUser.id })
+        .fetch()
+    ).toJSON()
+
+    if (timetables.length > 0) {
+      return response.status(400).send({
+        error: antl.formatMessage(
+          'messages.timetable.datetime.already.registered'
+        ),
+      })
+    }
+
     const timetable = await Timetable.create({
-      ...data,
+      clinic_id,
+      datetime,
       doctor_id: doctor_id || loggedUser.id,
     })
 

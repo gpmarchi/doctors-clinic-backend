@@ -84,6 +84,33 @@ test('it should create a new timetable', async ({ client, assert }) => {
   assert.exists(response.body.clinic)
 })
 
+test('it should not create a new timetable if already registered', async ({
+  client,
+  assert,
+}) => {
+  const datetime = new Date()
+
+  await Factory.model('App/Models/Timetable').create({
+    datetime,
+    doctor_id: loginDoctorOne.id,
+    clinic_id: clinicData.id,
+  })
+
+  const timetableData = await Factory.model('App/Models/Timetable').make({
+    datetime: datetime.getTime(),
+    clinic_id: clinicData.id,
+  })
+  const timetable = timetableData.toJSON()
+
+  const response = await client
+    .post('/timetables')
+    .loginVia(loginDoctorOne)
+    .send(timetable)
+    .end()
+
+  response.assertStatus(400)
+})
+
 test("it shouldn't create a new timetable to another doctor if not admin", async ({
   client,
 }) => {
