@@ -10,7 +10,7 @@ class ConsultationSchema extends Schema {
       table.timestamp('datetime').notNullable()
       table.boolean('is_return').notNullable().defaultTo(false)
       table
-        .integer('pacient_id')
+        .integer('patient_id')
         .unsigned()
         .references('id')
         .inTable('users')

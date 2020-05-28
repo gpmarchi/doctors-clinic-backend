@@ -46,7 +46,7 @@ before(async () => {
     slug: 'assistant',
   })
 
-  const pacientRole = await Factory.model('Adonis/Acl/Role').create({
+  const patientRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'patient',
   })
 
@@ -61,10 +61,10 @@ before(async () => {
   await assistant.roles().attach([assistantRole.id])
 
   patientOne = await Factory.model('App/Models/User').create()
-  await patientOne.roles().attach([pacientRole.id])
+  await patientOne.roles().attach([patientRole.id])
 
   patientTwo = await Factory.model('App/Models/User').create()
-  await patientTwo.roles().attach([pacientRole.id])
+  await patientTwo.roles().attach([patientRole.id])
 
   admin = await Factory.model('App/Models/User').create()
   await admin.roles().attach([adminRole.id])
@@ -118,10 +118,10 @@ test('it should create a new consultation', async ({ client, assert }) => {
   assert.equal(response.body.datetime, consultation.datetime)
   assert.equal(response.body.clinic_id, consultation.clinic_id)
   assert.equal(response.body.doctor_id, doctor.id)
-  assert.equal(response.body.pacient_id, patientOne.id)
+  assert.equal(response.body.patient_id, patientOne.id)
   assert.exists(response.body.clinic)
   assert.exists(response.body.doctor)
-  assert.exists(response.body.pacient)
+  assert.exists(response.body.patient)
   assert.equal(timetables[0].scheduled, 1)
 })
 
@@ -163,14 +163,14 @@ test('it should create a new consultation by assistant', async ({
   assert.equal(response.body.datetime, consultation.datetime)
   assert.equal(response.body.clinic_id, consultation.clinic_id)
   assert.equal(response.body.doctor_id, doctor.id)
-  assert.equal(response.body.pacient_id, patientTwo.id)
+  assert.equal(response.body.patient_id, patientTwo.id)
   assert.exists(response.body.clinic)
   assert.exists(response.body.doctor)
-  assert.exists(response.body.pacient)
+  assert.exists(response.body.patient)
   assert.equal(timetables[0].scheduled, 1)
 })
 
-test('it should not create a new consultation for another pacient if not assistant', async ({
+test('it should not create a new consultation for another patient if not assistant', async ({
   client,
 }) => {
   const consultationData = await Factory.model('App/Models/Consultation').make({

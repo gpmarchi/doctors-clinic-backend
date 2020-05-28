@@ -127,7 +127,7 @@ class ConsultationController {
         is_return,
         clinic_id,
         doctor_id,
-        pacient_id: patient_id || loggedUser.id,
+        patient_id: patient_id || loggedUser.id,
       },
       trx
     )
@@ -138,7 +138,7 @@ class ConsultationController {
 
     trx.commit()
 
-    await consultation.loadMany(['clinic', 'doctor', 'pacient'])
+    await consultation.loadMany(['clinic', 'doctor', 'patient'])
 
     return consultation
   }

@@ -12,8 +12,8 @@ class Consultation extends Model {
     return this.belongsTo('App/Models/User', 'doctor_id', 'id')
   }
 
-  pacient() {
-    return this.belongsTo('App/Models/User', 'pacient_id', 'id')
+  patient() {
+    return this.belongsTo('App/Models/User', 'patient_id', 'id')
   }
 }
 
