@@ -41,6 +41,11 @@ Route.group(() => {
     'PatientConsultationController.index'
   ).middleware('is:patient')
 
+  Route.get(
+    '/doctor/consultations',
+    'DoctorConsultationController.index'
+  ).middleware('is:doctor')
+
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()
     .except(['index', 'show'])
