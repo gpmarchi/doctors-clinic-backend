@@ -36,6 +36,13 @@ Route.group(() => {
     'is:pacient'
   )
 
+  Route.get('/consultations', 'ConsultationController.index').middleware(
+    'is:assistant'
+  )
+  Route.post('/consultations', 'ConsultationController.store')
+    .validator('Consultation')
+    .middleware('is:(patient or assistant)')
+
   Route.get(
     '/patient/consultations',
     'PatientConsultationController.index'
@@ -92,9 +99,4 @@ Route.group(() => {
     .apiOnly()
     .validator(new Map([[['timetables.store'], ['Timetable']]]))
     .middleware('is:(doctor or administrator)')
-
-  Route.resource('consultations', 'ConsultationController')
-    .apiOnly()
-    .validator(new Map([[['consultations.store'], ['Consultation']]]))
-    .middleware('is:(patient or assistant)')
 }).middleware(['auth'])

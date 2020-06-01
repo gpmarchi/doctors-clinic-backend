@@ -26,7 +26,47 @@ class ConsultationController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index({ request, response }) {}
+  async index({ request, response }) {
+    const { patient_id, doctor_id, clinic_id, is_return } = request.get()
+
+    let { start_date, end_date } = request.get()
+
+    if (!start_date) {
+      start_date = await Database.from('consultations').getMin('datetime')
+    }
+
+    if (!end_date) {
+      end_date = await Database.from('consultations').getMax('datetime')
+    }
+
+    const query = {}
+
+    if (patient_id) {
+      query.patient_id = patient_id
+    }
+
+    if (doctor_id) {
+      query.doctor_id = doctor_id
+    }
+
+    if (clinic_id) {
+      query.clinic_id = clinic_id
+    }
+
+    if (is_return) {
+      query.is_return = is_return === 'true'
+    }
+
+    const consultations = await Consultation.query()
+      .where(query)
+      .whereBetween('datetime', [start_date, end_date])
+      .with('patient')
+      .with('doctor')
+      .with('clinic')
+      .fetch()
+
+    return consultations
+  }
 
   /**
    * Create/save a new consultation.
