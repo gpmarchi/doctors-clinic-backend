@@ -194,7 +194,7 @@ class TimetableController {
       })
     }
 
-    timetable.delete()
+    await timetable.delete()
   }
 }
 
