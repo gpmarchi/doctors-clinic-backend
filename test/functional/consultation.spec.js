@@ -547,3 +547,158 @@ test('it should list all return consultations', async ({ client, assert }) => {
   response.assertStatus(200)
   assert.equal(response.body.length, 2)
 })
+
+test("it should cancel a logged in patient's consultation", async ({
+  client,
+  assert,
+}) => {
+  const validTimetableDate = dateFns.subDays(datetime, 4)
+
+  await Factory.model('App/Models/Timetable').create({
+    datetime: validTimetableDate,
+    doctor_id: doctorOne.id,
+    clinic_id: clinicOne.id,
+    scheduled: true,
+  })
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: validTimetableDate,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .delete(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send()
+    .end()
+
+  const timetables = (
+    await Timetable.query()
+      .where({
+        datetime: validTimetableDate.getTime(),
+        doctor_id: doctorOne.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  const deletedConsultation = await Consultation.find(consultation.id)
+
+  response.assertStatus(204)
+  assert.notExists(deletedConsultation)
+  assert.equal(timetables[0].scheduled, 0)
+})
+
+test("it should cancel any patient's consultation if assistant", async ({
+  client,
+  assert,
+}) => {
+  const validTimetableDate = dateFns.subDays(datetime, 4)
+
+  await Factory.model('App/Models/Timetable').create({
+    datetime: validTimetableDate,
+    doctor_id: doctorOne.id,
+    clinic_id: clinicOne.id,
+    scheduled: true,
+  })
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: validTimetableDate,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .delete(`/consultations/${consultation.id}`)
+    .loginVia(assistant)
+    .send()
+    .end()
+
+  const timetables = (
+    await Timetable.query()
+      .where({
+        datetime: validTimetableDate.getTime(),
+        doctor_id: doctorOne.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  const deletedConsultation = await Consultation.find(consultation.id)
+
+  response.assertStatus(204)
+  assert.notExists(deletedConsultation)
+  assert.equal(timetables[0].scheduled, 0)
+})
+
+test('it should not cancel an inexistent consultation', async ({ client }) => {
+  const response = await client
+    .delete('/consultations/-1')
+    .loginVia(patientOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not cancel another patient's consultation", async ({
+  client,
+}) => {
+  const validTimetableDate = dateFns.subDays(datetime, 4)
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: validTimetableDate,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .delete(`/consultations/${consultation.id}`)
+    .loginVia(patientTwo)
+    .send()
+    .end()
+
+  response.assertStatus(401)
+})
+
+test("it should not cancel a logged in patient's consultation if not within cancel timeframe", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Timetable').create({
+    datetime,
+    doctor_id: doctorOne.id,
+    clinic_id: clinicOne.id,
+    scheduled: true,
+  })
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .delete(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send()
+    .end()
+
+  const timetables = (
+    await Timetable.query()
+      .where({
+        datetime: datetime.getTime(),
+        doctor_id: doctorOne.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  const deletedConsultation = await Consultation.find(consultation.id)
+
+  response.assertStatus(400)
+  assert.exists(deletedConsultation)
+  assert.equal(timetables[0].scheduled, 1)
+})

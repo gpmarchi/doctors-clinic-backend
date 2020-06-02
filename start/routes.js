@@ -39,6 +39,12 @@ Route.group(() => {
   Route.get('/consultations', 'ConsultationController.index').middleware(
     'is:assistant'
   )
+
+  Route.delete(
+    '/consultations/:id',
+    'ConsultationController.destroy'
+  ).middleware('is:(patient or assistant)')
+
   Route.post('/consultations', 'ConsultationController.store')
     .validator('Consultation')
     .middleware('is:(patient or assistant)')

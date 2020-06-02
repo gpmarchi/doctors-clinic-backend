@@ -3,6 +3,8 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 
+const dateFns = use('date-fns')
+
 const Database = use('Database')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
@@ -208,10 +210,61 @@ class ConsultationController {
    * DELETE consultations/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, response, antl, auth }) {
+    const consultation = await Consultation.find(params.id)
+
+    if (!consultation) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.consultation.not.found'),
+      })
+    }
+
+    const loggedUser = await auth.getUser()
+
+    if (
+      !(await loggedUser.is('assistant')) &&
+      loggedUser.id !== consultation.patient_id
+    ) {
+      return response.status(401).send({
+        error: antl.formatMessage('messages.consultation.cancel.unauthorized'),
+      })
+    }
+
+    const cancelledDate = new Date().getTime()
+    const differenceInDays = dateFns.differenceInDays(
+      cancelledDate,
+      consultation.datetime
+    )
+
+    if (differenceInDays < 3) {
+      return response.status(400).send({
+        error: antl.formatMessage('messages.consultation.cancel.period'),
+      })
+    }
+
+    const scheduledTimetable = (
+      await Timetable.query()
+        .where({
+          datetime: consultation.datetime,
+          doctor_id: consultation.doctor_id,
+        })
+        .select('id')
+        .fetch()
+    ).toJSON()[0]
+
+    const trx = await Database.beginTransaction()
+
+    await consultation.delete(trx)
+
+    const timetable = await Timetable.find(scheduledTimetable.id)
+    timetable.scheduled = false
+    await timetable.save(trx)
+
+    trx.commit()
+  }
 }
 
 module.exports = ConsultationController
