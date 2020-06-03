@@ -161,6 +161,28 @@ test('it should create a new user with specialty', async ({
   assert.include(response.body.specialty, specialty)
 })
 
+test('it should create a new user with clinic', async ({ client, assert }) => {
+  const clinicData = await Factory.model('App/Models/Clinic').create()
+  const clinic = clinicData.toJSON()
+
+  const userData = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+
+  const user = userData.$attributes
+
+  const response = await client
+    .post('/users')
+    .send({ ...user, clinic_id: clinic.id })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.equal(response.body.username, user.username)
+  assert.include(response.body.clinic, clinic)
+})
+
 test("it should create an existing user's address", async ({
   client,
   assert,
@@ -259,6 +281,25 @@ test("it should update an existing user's specialty", async ({
 
   response.assertStatus(200)
   assert.include(response.body.specialty, specialty)
+})
+
+test("it should update an existing user's clinic", async ({
+  client,
+  assert,
+}) => {
+  const clinicData = await Factory.model('App/Models/Clinic').create()
+  const clinic = clinicData.toJSON()
+  delete clinic.created_at
+  delete clinic.updated_at
+
+  const response = await client
+    .patch(`/users/${loginUser.id}`)
+    .loginVia(loginUser)
+    .send({ clinic_id: clinic.id })
+    .end()
+
+  response.assertStatus(200)
+  assert.include(response.body.clinic, clinic)
 })
 
 test("it should update an existing user's roles", async ({

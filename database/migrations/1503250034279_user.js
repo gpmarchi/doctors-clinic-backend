@@ -30,6 +30,13 @@ class UserSchema extends Schema {
         .inTable('specialties')
         .onUpdate('CASCADE')
         .onDelete('SET NULL')
+      table
+        .integer('clinic_id')
+        .unsigned()
+        .references('id')
+        .inTable('clinics')
+        .onUpdate('CASCADE')
+        .onDelete('SET NULL')
       table.timestamps()
     })
   }

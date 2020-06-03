@@ -55,6 +55,10 @@ class User extends Model {
   specialty() {
     return this.belongsTo('App/Models/Specialty')
   }
+
+  clinic() {
+    return this.belongsTo('App/Models/Clinic')
+  }
 }
 
 module.exports = User

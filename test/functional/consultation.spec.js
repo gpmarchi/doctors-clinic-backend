@@ -42,6 +42,9 @@ before(async () => {
   await Role.truncate()
   await Clinic.truncate()
 
+  clinicOne = await Factory.model('App/Models/Clinic').create()
+  clinicTwo = await Factory.model('App/Models/Clinic').create()
+
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'doctor',
   })
@@ -64,7 +67,9 @@ before(async () => {
   doctorTwo = await Factory.model('App/Models/User').create()
   await doctorTwo.roles().attach([doctorRole.id])
 
-  assistant = await Factory.model('App/Models/User').create()
+  assistant = await Factory.model('App/Models/User').create({
+    clinic_id: clinicOne.id,
+  })
   await assistant.roles().attach([assistantRole.id])
 
   patientOne = await Factory.model('App/Models/User').create()
@@ -75,9 +80,6 @@ before(async () => {
 
   admin = await Factory.model('App/Models/User').create()
   await admin.roles().attach([adminRole.id])
-
-  clinicOne = await Factory.model('App/Models/Clinic').create()
-  clinicTwo = await Factory.model('App/Models/Clinic').create()
 })
 
 beforeEach(async () => {
@@ -391,10 +393,17 @@ test('it should list all consultations', async ({ client, assert }) => {
   assert.exists(response.body[0].patient)
 })
 
-test('it should list all consultations by date period', async ({
+test("it should list all consultations from logged in assistant's clinic by date period", async ({
   client,
   assert,
 }) => {
+  await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorTwo.id,
+    patient_id: patientTwo.id,
+  })
+
   await Factory.model('App/Models/Consultation').create({
     datetime,
     clinic_id: clinicOne.id,
@@ -426,10 +435,17 @@ test('it should list all consultations by date period', async ({
   assert.equal(response.body.length, 1)
 })
 
-test('it should list all consultations by patient', async ({
+test("it should list all consultations from logged in assistant's clinic by patient", async ({
   client,
   assert,
 }) => {
+  await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorTwo.id,
+    patient_id: patientOne.id,
+  })
+
   await Factory.model('App/Models/Consultation').createMany(2, {
     datetime,
     clinic_id: clinicOne.id,
@@ -457,10 +473,17 @@ test('it should list all consultations by patient', async ({
   assert.equal(response.body.length, 2)
 })
 
-test('it should list all consultations by doctor', async ({
+test("it should list all consultations from logged in assistant's clinic by doctor", async ({
   client,
   assert,
 }) => {
+  await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientTwo.id,
+  })
+
   await Factory.model('App/Models/Consultation').createMany(2, {
     datetime,
     clinic_id: clinicOne.id,
@@ -488,7 +511,7 @@ test('it should list all consultations by doctor', async ({
   assert.equal(response.body.length, 2)
 })
 
-test('it should list all consultations by clinic', async ({
+test("it should list all consultations from logged in assistant's clinic", async ({
   client,
   assert,
 }) => {
@@ -501,7 +524,7 @@ test('it should list all consultations by clinic', async ({
 
   await Factory.model('App/Models/Consultation').create({
     datetime: dateFns.subDays(datetime, 1),
-    clinic_id: clinicTwo.id,
+    clinic_id: clinicOne.id,
     doctor_id: doctorTwo.id,
     patient_id: patientTwo.id,
   })
@@ -509,17 +532,25 @@ test('it should list all consultations by clinic', async ({
   const response = await client
     .get('/consultations')
     .loginVia(assistant)
-    .query({
-      clinic_id: clinicOne.id,
-    })
     .send()
     .end()
 
   response.assertStatus(200)
-  assert.equal(response.body.length, 2)
+  assert.equal(response.body.length, 3)
 })
 
-test('it should list all return consultations', async ({ client, assert }) => {
+test("it should list all return consultations from logged in assistant's clinic", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorTwo.id,
+    patient_id: patientTwo.id,
+    is_return: true,
+  })
+
   await Factory.model('App/Models/Consultation').createMany(2, {
     datetime,
     clinic_id: clinicOne.id,
@@ -545,7 +576,7 @@ test('it should list all return consultations', async ({ client, assert }) => {
     .end()
 
   response.assertStatus(200)
-  assert.equal(response.body.length, 2)
+  assert.equal(response.body.length, 3)
 })
 
 test("it should cancel a logged in patient's consultation", async ({

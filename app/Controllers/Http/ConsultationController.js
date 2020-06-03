@@ -27,8 +27,9 @@ class ConsultationController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async index({ request, response }) {
+  async index({ request, response, auth }) {
     const { patient_id, doctor_id, clinic_id, is_return } = request.get()
 
     let { start_date, end_date } = request.get()
@@ -41,7 +42,10 @@ class ConsultationController {
       end_date = await Database.from('consultations').getMax('datetime')
     }
 
+    const loggedUser = await auth.getUser()
+
     const query = {}
+    query.clinic_id = clinic_id || loggedUser.clinic_id
 
     if (patient_id) {
       query.patient_id = patient_id
@@ -49,10 +53,6 @@ class ConsultationController {
 
     if (doctor_id) {
       query.doctor_id = doctor_id
-    }
-
-    if (clinic_id) {
-      query.clinic_id = clinic_id
     }
 
     if (is_return) {

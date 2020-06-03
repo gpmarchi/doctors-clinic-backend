@@ -42,6 +42,7 @@ class UserController {
       'address',
       'avatar_id',
       'specialty_id',
+      'clinic_id',
     ])
 
     const trx = await Database.beginTransaction()
@@ -65,7 +66,7 @@ class UserController {
 
     trx.commit()
 
-    await user.loadMany(['address', 'specialty', 'avatar'])
+    await user.loadMany(['address', 'specialty', 'avatar', 'clinic'])
 
     return user
   }
@@ -95,7 +96,13 @@ class UserController {
       })
     }
 
-    await user.loadMany(['address', 'specialty', 'roles', 'permissions'])
+    await user.loadMany([
+      'address',
+      'specialty',
+      'clinic',
+      'roles',
+      'permissions',
+    ])
 
     return user
   }
@@ -117,6 +124,7 @@ class UserController {
       'phone',
       'address',
       'specialty_id',
+      'clinic_id',
       'roles',
       'permissions',
     ])
@@ -175,7 +183,13 @@ class UserController {
 
     trx.commit()
 
-    await user.loadMany(['address', 'specialty', 'roles', 'permissions'])
+    await user.loadMany([
+      'address',
+      'specialty',
+      'clinic',
+      'roles',
+      'permissions',
+    ])
 
     return user
   }
