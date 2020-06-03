@@ -103,7 +103,7 @@ class ConsultationController {
     if (!patient_id && (await loggedUser.is('assistant'))) {
       return response
         .status(400)
-        .send({ error: antl.formatMessage('messages.pacient.id.required') })
+        .send({ error: antl.formatMessage('messages.patient.id.required') })
     }
 
     const clinic = await Clinic.find(clinic_id)
@@ -129,15 +129,15 @@ class ConsultationController {
     }
 
     if (patient_id) {
-      const pacient = await User.find(patient_id)
+      const patient = await User.find(patient_id)
 
-      if (!pacient) {
+      if (!patient) {
         return response
           .status(404)
-          .send({ error: antl.formatMessage('messages.pacient.not.found') })
+          .send({ error: antl.formatMessage('messages.patient.not.found') })
       }
 
-      if (!(await pacient.is('patient'))) {
+      if (!(await patient.is('patient'))) {
         return response
           .status(400)
           .send({ error: antl.formatMessage('messages.user.is.not.patient') })

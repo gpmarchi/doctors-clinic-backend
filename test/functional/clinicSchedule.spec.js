@@ -19,7 +19,7 @@ const { test, trait, before, after } = use('Test/Suite')('Clinic Schedule')
 trait('Test/ApiClient')
 trait('Auth/Client')
 
-let pacient = null
+let patient = null
 let doctor = null
 let specialty = null
 let clinic = null
@@ -30,8 +30,8 @@ before(async () => {
   await Specialty.truncate()
   await Clinic.truncate()
 
-  const pacientRole = await Factory.model('Adonis/Acl/Role').create({
-    slug: 'pacient',
+  const patientRole = await Factory.model('Adonis/Acl/Role').create({
+    slug: 'patient',
   })
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'doctor',
@@ -40,8 +40,8 @@ before(async () => {
   specialty = await Factory.model('App/Models/Specialty').create()
   const specialtyCheck = await Factory.model('App/Models/Specialty').create()
 
-  pacient = await Factory.model('App/Models/User').create()
-  await pacient.roles().attach([pacientRole.toJSON().id])
+  patient = await Factory.model('App/Models/User').create()
+  await patient.roles().attach([patientRole.toJSON().id])
 
   doctor = await Factory.model('App/Models/User').create({
     specialty_id: specialty.id,
@@ -68,7 +68,7 @@ before(async () => {
 })
 
 after(async () => {
-  await pacient.roles().delete()
+  await patient.roles().delete()
   await doctor.roles().delete()
 })
 
@@ -78,7 +78,7 @@ test('it should return the clinic with a list of doctors by specialty with avail
 }) => {
   const response = await client
     .get('/schedules')
-    .loginVia(pacient)
+    .loginVia(patient)
     .query({ specialty_id: specialty.id, clinic_id: clinic.id })
     .send()
     .end()
@@ -93,7 +93,7 @@ test('it should not return the clinic with available timetables if specialty not
 }) => {
   const response = await client
     .get('/schedules')
-    .loginVia(pacient)
+    .loginVia(patient)
     .query({ clinic_id: clinic.id })
     .send()
     .end()
@@ -107,7 +107,7 @@ test('it should not return the clinic with available timetables if clinic not pr
 }) => {
   const response = await client
     .get('/schedules')
-    .loginVia(pacient)
+    .loginVia(patient)
     .query({ specialty_id: specialty.id })
     .send()
     .end()
@@ -121,7 +121,7 @@ test('it should not return inexistent clinic with available timetables', async (
 }) => {
   const response = await client
     .get('/schedules')
-    .loginVia(pacient)
+    .loginVia(patient)
     .query({ specialty_id: specialty.id, clinic_id: -1 })
     .send()
     .end()

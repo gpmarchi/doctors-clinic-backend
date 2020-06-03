@@ -9,7 +9,7 @@ const Database = use('Database')
 const Consultation = use('App/Models/Consultation')
 
 /**
- * Resourceful controller for interacting with pacientconsultations
+ * Resourceful controller for interacting with doctor consultations
  */
 class DoctorConsultationController {
   /**

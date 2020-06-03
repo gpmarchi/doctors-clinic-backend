@@ -33,7 +33,7 @@ Route.group(() => {
   Route.get('/files/:id', 'FileController.show')
 
   Route.get('/schedules', 'ClinicScheduleController.index').middleware(
-    'is:pacient'
+    'is:patient'
   )
 
   Route.get('/consultations', 'ConsultationController.index').middleware(
@@ -65,10 +65,10 @@ Route.group(() => {
     .validator(new Map([[['specialties.store'], ['Specialty']]]))
     .middleware('is:administrator')
   Route.get('/specialties', 'SpecialtyController.index').middleware(
-    'is:(pacient or administrator)'
+    'is:(patient or administrator)'
   )
   Route.get('/specialties/:id', 'SpecialtyController.show').middleware(
-    'is:(pacient or administrator)'
+    'is:(patient or administrator)'
   )
 
   Route.resource('roles', 'RoleController')

@@ -9,12 +9,12 @@ const Database = use('Database')
 const Consultation = use('App/Models/Consultation')
 
 /**
- * Resourceful controller for interacting with pacientconsultations
+ * Resourceful controller for interacting with patient consultations
  */
 class PatientConsultationController {
   /**
-   * Show a list of all pacientconsultations.
-   * GET pacientconsultations
+   * Show a list of all patient consultations.
+   * GET /patient/consultations
    *
    * @param {object} ctx
    * @param {Request} ctx.request

@@ -39,7 +39,7 @@ before(async () => {
     slug: 'doctor',
   })
 
-  const pacientRole = await Factory.model('Adonis/Acl/Role').create({
+  const patientRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'patient',
   })
 
@@ -47,10 +47,10 @@ before(async () => {
   await doctor.roles().attach([doctorRole.id])
 
   patientOne = await Factory.model('App/Models/User').create()
-  await patientOne.roles().attach([pacientRole.id])
+  await patientOne.roles().attach([patientRole.id])
 
   patientTwo = await Factory.model('App/Models/User').create()
-  await patientTwo.roles().attach([pacientRole.id])
+  await patientTwo.roles().attach([patientRole.id])
 
   clinicOneData = await Factory.model('App/Models/Clinic').create()
 
