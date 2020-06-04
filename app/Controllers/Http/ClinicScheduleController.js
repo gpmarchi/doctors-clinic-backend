@@ -17,8 +17,9 @@ class ClinicScheduleController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async index({ request, response, antl }) {
+  async index({ request, response, antl, auth }) {
     const { clinic_id, specialty_id } = request.get()
 
     if (!specialty_id) {
@@ -27,14 +28,26 @@ class ClinicScheduleController {
       })
     }
 
-    if (!clinic_id) {
+    const loggedUser = await auth.getUser()
+
+    if (!clinic_id && (await loggedUser.is('patient'))) {
       return response.status(400).send({
         error: antl.formatMessage('messages.clinic.not.provided'),
       })
     }
 
+    if (
+      (await loggedUser.is('assistant')) &&
+      clinic_id &&
+      clinic_id !== loggedUser.clinic_id
+    ) {
+      return response.status(401).send({
+        error: antl.formatMessage('messages.show.unauthorized'),
+      })
+    }
+
     const clinic = await Clinic.query()
-      .where('id', clinic_id)
+      .where('id', clinic_id || loggedUser.clinic_id)
       .select(['id', 'name'])
       .with('address')
       .with('timetables', (builder) =>

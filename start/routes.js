@@ -33,7 +33,7 @@ Route.group(() => {
   Route.get('/files/:id', 'FileController.show')
 
   Route.get('/schedules', 'ClinicScheduleController.index').middleware(
-    'is:patient'
+    'is:(patient or assistant)'
   )
 
   Route.get('/consultations', 'ConsultationController.index').middleware(

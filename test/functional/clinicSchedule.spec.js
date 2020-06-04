@@ -20,9 +20,11 @@ trait('Test/ApiClient')
 trait('Auth/Client')
 
 let patient = null
-let doctor = null
-let specialty = null
-let clinic = null
+let doctorOne = null
+let specialtyOne = null
+let clinicOne = null
+let clinicTwo = null
+let assistant = null
 
 before(async () => {
   await User.truncate()
@@ -36,55 +38,101 @@ before(async () => {
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'doctor',
   })
+  const assistantRole = await Factory.model('Adonis/Acl/Role').create({
+    slug: 'assistant',
+  })
 
-  specialty = await Factory.model('App/Models/Specialty').create()
-  const specialtyCheck = await Factory.model('App/Models/Specialty').create()
+  specialtyOne = await Factory.model('App/Models/Specialty').create()
+  const specialtyTwo = await Factory.model('App/Models/Specialty').create()
 
   patient = await Factory.model('App/Models/User').create()
   await patient.roles().attach([patientRole.toJSON().id])
 
-  doctor = await Factory.model('App/Models/User').create({
-    specialty_id: specialty.id,
+  doctorOne = await Factory.model('App/Models/User').create({
+    specialty_id: specialtyOne.id,
   })
-  await doctor.roles().attach([doctorRole.toJSON().id])
+  await doctorOne.roles().attach([doctorRole.toJSON().id])
 
-  const doctorCheck = await Factory.model('App/Models/User').create({
-    specialty_id: specialtyCheck.id,
+  const doctorTwo = await Factory.model('App/Models/User').create({
+    specialty_id: specialtyTwo.id,
   })
-  await doctor.roles().attach([doctorRole.toJSON().id])
+  await doctorOne.roles().attach([doctorRole.toJSON().id])
 
-  clinic = await Factory.model('App/Models/Clinic').create()
-  await clinic.specialties().attach([specialty.id, specialtyCheck.id])
+  clinicOne = await Factory.model('App/Models/Clinic').create()
+  await clinicOne.specialties().attach([specialtyOne.id, specialtyTwo.id])
+
+  clinicTwo = await Factory.model('App/Models/Clinic').create()
+  await clinicTwo.specialties().attach([specialtyOne.id, specialtyTwo.id])
+
+  assistant = await Factory.model('App/Models/User').create({
+    clinic_id: clinicOne.id,
+  })
+  await assistant.roles().attach([assistantRole.id])
 
   await Factory.model('App/Models/Timetable').createMany(2, {
-    clinic_id: clinic.id,
-    doctor_id: doctor.id,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
   })
 
   await Factory.model('App/Models/Timetable').createMany(3, {
-    clinic_id: clinic.id,
-    doctor_id: doctorCheck.id,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorTwo.id,
+  })
+
+  await Factory.model('App/Models/Timetable').createMany(3, {
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorOne.id,
   })
 })
 
 after(async () => {
   await patient.roles().delete()
-  await doctor.roles().delete()
+  await doctorOne.roles().delete()
+  await assistant.roles().delete()
 })
 
-test('it should return the clinic with a list of doctors by specialty with available timetables', async ({
+test('it should return the clinic with a list of doctors filtered by specialty with available timetables', async ({
   client,
   assert,
 }) => {
   const response = await client
     .get('/schedules')
     .loginVia(patient)
-    .query({ specialty_id: specialty.id, clinic_id: clinic.id })
+    .query({ specialty_id: specialtyOne.id, clinic_id: clinicOne.id })
     .send()
     .end()
 
   response.assertStatus(200)
   assert.equal(response.body[0].timetables.length, 2)
+})
+
+test("it should return the assistant's clinic with a list of doctors filtered by specialty with available timetables", async ({
+  client,
+  assert,
+}) => {
+  const response = await client
+    .get('/schedules')
+    .loginVia(assistant)
+    .query({ specialty_id: specialtyOne.id })
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body[0].timetables.length, 2)
+})
+
+test('it should not return another clinic with available timetables if assistant', async ({
+  client,
+  assert,
+}) => {
+  const response = await client
+    .get('/schedules')
+    .loginVia(assistant)
+    .query({ specialty_id: specialtyOne.id, clinic_id: clinicTwo.id })
+    .send()
+    .end()
+
+  response.assertStatus(401)
 })
 
 test('it should not return the clinic with available timetables if specialty not provided', async ({
@@ -94,21 +142,21 @@ test('it should not return the clinic with available timetables if specialty not
   const response = await client
     .get('/schedules')
     .loginVia(patient)
-    .query({ clinic_id: clinic.id })
+    .query({ clinic_id: clinicOne.id })
     .send()
     .end()
 
   response.assertStatus(400)
 })
 
-test('it should not return the clinic with available timetables if clinic not provided', async ({
+test('it should not return the clinic with available timetables if clinic not provided by pacient', async ({
   client,
   assert,
 }) => {
   const response = await client
     .get('/schedules')
     .loginVia(patient)
-    .query({ specialty_id: specialty.id })
+    .query({ specialty_id: specialtyOne.id })
     .send()
     .end()
 
@@ -122,7 +170,7 @@ test('it should not return inexistent clinic with available timetables', async (
   const response = await client
     .get('/schedules')
     .loginVia(patient)
-    .query({ specialty_id: specialty.id, clinic_id: -1 })
+    .query({ specialty_id: specialtyOne.id, clinic_id: -1 })
     .send()
     .end()
 
