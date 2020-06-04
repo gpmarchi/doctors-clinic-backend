@@ -233,6 +233,15 @@ class ConsultationController {
       })
     }
 
+    if (
+      (await loggedUser.is('assistant')) &&
+      loggedUser.clinic_id !== consultation.clinic_id
+    ) {
+      return response.status(401).send({
+        error: antl.formatMessage('messages.consultation.cancel.unauthorized'),
+      })
+    }
+
     const cancelledDate = new Date().getTime()
     const differenceInDays = dateFns.differenceInDays(
       cancelledDate,

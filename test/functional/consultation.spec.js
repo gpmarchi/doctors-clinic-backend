@@ -621,7 +621,7 @@ test("it should cancel a logged in patient's consultation", async ({
   assert.equal(timetables[0].scheduled, 0)
 })
 
-test("it should cancel any patient's consultation if assistant", async ({
+test("it should cancel any patient's consultation in my clinic if assistant", async ({
   client,
   assert,
 }) => {
@@ -661,6 +661,31 @@ test("it should cancel any patient's consultation if assistant", async ({
   response.assertStatus(204)
   assert.notExists(deletedConsultation)
   assert.equal(timetables[0].scheduled, 0)
+})
+
+test("it should not cancel any patient's consultation not in my clinic if assistant", async ({
+  client,
+  assert,
+}) => {
+  const validTimetableDate = dateFns.subDays(datetime, 4)
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: validTimetableDate,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .delete(`/consultations/${consultation.id}`)
+    .loginVia(assistant)
+    .send()
+    .end()
+
+  const deletedConsultation = await Consultation.find(consultation.id)
+
+  response.assertStatus(401)
+  assert.exists(deletedConsultation)
 })
 
 test('it should not cancel an inexistent consultation', async ({ client }) => {
