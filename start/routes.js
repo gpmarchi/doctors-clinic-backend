@@ -49,6 +49,10 @@ Route.group(() => {
     .validator('Consultation')
     .middleware('is:(patient or assistant)')
 
+  Route.patch('/consultations/:id', 'ConsultationController.update').middleware(
+    'is:(patient or assistant)'
+  )
+
   Route.get(
     '/patient/consultations',
     'PatientConsultationController.index'

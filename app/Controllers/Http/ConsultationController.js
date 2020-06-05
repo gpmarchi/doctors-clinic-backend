@@ -144,10 +144,9 @@ class ConsultationController {
       }
     }
 
-    const timetables = (
+    const [timetable] = (
       await Timetable.query().where({ datetime, doctor_id }).fetch()
     ).toJSON()
-    const timetable = timetables[0]
 
     if (!timetable) {
       return response
@@ -202,8 +201,106 @@ class ConsultationController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response, antl, auth }) {
+    const consultation = await Consultation.find(params.id)
+
+    if (!consultation) {
+      return response
+        .status(404)
+        .send({ error: antl.formatMessage('messages.consultation.not.found') })
+    }
+
+    const { clinic_id, doctor_id, datetime, is_return } = request.all()
+
+    const loggedUser = await auth.getUser()
+
+    if (
+      consultation.patient_id !== loggedUser.id &&
+      !(await loggedUser.is('assistant'))
+    ) {
+      return response
+        .status(400)
+        .send({ error: antl.formatMessage('messages.update.unauthorized') })
+    }
+
+    if (doctor_id) {
+      const doctor = await User.find(doctor_id)
+
+      if (!doctor) {
+        return response
+          .status(404)
+          .send({ error: antl.formatMessage('messages.doctor.not.found') })
+      }
+
+      if (!(await doctor.is('doctor'))) {
+        return response
+          .status(400)
+          .send({ error: antl.formatMessage('messages.user.is.not.doctor') })
+      }
+    }
+
+    if (clinic_id) {
+      const clinic = await Clinic.find(clinic_id)
+
+      if (!clinic) {
+        return response
+          .status(404)
+          .send({ error: antl.formatMessage('messages.clinic.not.found') })
+      }
+    }
+
+    const [oldTimetable] = (
+      await Timetable.query()
+        .where({
+          datetime: consultation.datetime,
+          doctor_id: consultation.doctor_id,
+        })
+        .fetch()
+    ).toJSON()
+
+    const [newTimetable] = (
+      await Timetable.query().where({ datetime, doctor_id }).fetch()
+    ).toJSON()
+
+    if (!newTimetable) {
+      return response
+        .status(404)
+        .send({ error: antl.formatMessage('messages.date.not.available') })
+    }
+
+    if (newTimetable.scheduled) {
+      return response
+        .status(400)
+        .send({ error: antl.formatMessage('messages.date.already.scheduled') })
+    }
+
+    consultation.merge({
+      clinic_id,
+      doctor_id,
+      datetime,
+      is_return,
+    })
+
+    const trx = await Database.beginTransaction()
+
+    await consultation.save(trx)
+
+    const scheduledTimetable = await Timetable.find(newTimetable.id)
+    scheduledTimetable.scheduled = true
+    await scheduledTimetable.save(trx)
+
+    const unscheduledTimetable = await Timetable.find(oldTimetable.id)
+    unscheduledTimetable.scheduled = false
+    await unscheduledTimetable.save(trx)
+
+    trx.commit()
+
+    await consultation.loadMany(['clinic', 'doctor', 'patient'])
+
+    return consultation
+  }
 
   /**
    * Delete a consultation with id.

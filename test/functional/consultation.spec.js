@@ -365,6 +365,309 @@ test("it should not create a new consultation if doctor's timetable is already s
   response.assertStatus(400)
 })
 
+test("it should reschedule a pacient's existing consultation", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Timetable').create({
+    datetime,
+    doctor_id: doctorOne.id,
+    clinic_id: clinicOne.id,
+    scheduled: true,
+  })
+
+  const rescheduledDate = dateFns.addHours(datetime, 4)
+  await Factory.model('App/Models/Timetable').create({
+    datetime: rescheduledDate,
+    doctor_id: doctorTwo.id,
+    clinic_id: clinicTwo.id,
+    scheduled: false,
+  })
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    patient_id: patientOne.id,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send({
+      datetime: rescheduledDate.getTime(),
+      doctor_id: doctorTwo.id,
+      clinic_id: clinicTwo.id,
+    })
+    .end()
+
+  const [oldTimetable] = (
+    await Timetable.query()
+      .where({
+        datetime: datetime.getTime(),
+        doctor_id: doctorOne.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  const [newTimetable] = (
+    await Timetable.query()
+      .where({
+        datetime: rescheduledDate.getTime(),
+        doctor_id: doctorTwo.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, consultation.id)
+  assert.equal(response.body.datetime, rescheduledDate.getTime())
+  assert.equal(response.body.clinic_id, clinicTwo.id)
+  assert.equal(response.body.doctor_id, doctorTwo.id)
+  assert.equal(response.body.patient_id, patientOne.id)
+  assert.exists(response.body.clinic)
+  assert.exists(response.body.doctor)
+  assert.exists(response.body.patient)
+  assert.equal(oldTimetable.scheduled, 0)
+  assert.equal(newTimetable.scheduled, 1)
+})
+
+test("it should reschedule any pacient's existing consultation if assistant", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Timetable').create({
+    datetime,
+    doctor_id: doctorOne.id,
+    clinic_id: clinicOne.id,
+    scheduled: true,
+  })
+
+  const rescheduledDate = dateFns.addHours(datetime, 4)
+  await Factory.model('App/Models/Timetable').create({
+    datetime: rescheduledDate,
+    doctor_id: doctorTwo.id,
+    clinic_id: clinicTwo.id,
+    scheduled: false,
+  })
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    patient_id: patientOne.id,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(assistant)
+    .send({
+      datetime: rescheduledDate.getTime(),
+      doctor_id: doctorTwo.id,
+      clinic_id: clinicTwo.id,
+    })
+    .end()
+
+  const [oldTimetable] = (
+    await Timetable.query()
+      .where({
+        datetime: datetime.getTime(),
+        doctor_id: doctorOne.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  const [newTimetable] = (
+    await Timetable.query()
+      .where({
+        datetime: rescheduledDate.getTime(),
+        doctor_id: doctorTwo.id,
+      })
+      .fetch()
+  ).toJSON()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, consultation.id)
+  assert.equal(response.body.datetime, rescheduledDate.getTime())
+  assert.equal(response.body.clinic_id, clinicTwo.id)
+  assert.equal(response.body.doctor_id, doctorTwo.id)
+  assert.equal(response.body.patient_id, patientOne.id)
+  assert.exists(response.body.clinic)
+  assert.exists(response.body.doctor)
+  assert.exists(response.body.patient)
+  assert.equal(oldTimetable.scheduled, 0)
+  assert.equal(newTimetable.scheduled, 1)
+})
+
+test('it should not reschedule inexistent consultation', async ({ client }) => {
+  const response = await client
+    .patch('/consultations/-1')
+    .loginVia(patientOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not reschedule another patient's consultation if not assistant", async ({
+  client,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: datetime.getTime(),
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientTwo)
+    .send()
+    .end()
+
+  response.assertStatus(400)
+})
+
+test('it should not reschedule consultation if doctor does not exists', async ({
+  client,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: datetime.getTime(),
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const rescheduledConsultation = await Factory.model(
+    'App/Models/Consultation'
+  ).make({
+    clinic_id: clinicOne.id,
+    doctor_id: -1,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send(rescheduledConsultation.toJSON())
+    .end()
+
+  response.assertStatus(404)
+})
+
+test('it should not reschedule consultation if provided doctor is not a doctor', async ({
+  client,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: datetime.getTime(),
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const rescheduledConsultation = await Factory.model(
+    'App/Models/Consultation'
+  ).make({
+    clinic_id: clinicOne.id,
+    doctor_id: patientTwo.id,
+    patient_id: patientOne.id,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send(rescheduledConsultation.toJSON())
+    .end()
+
+  response.assertStatus(400)
+})
+
+test('it should not reschedule consultation if clinic does not exists', async ({
+  client,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: datetime.getTime(),
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const rescheduledConsultation = await Factory.model(
+    'App/Models/Consultation'
+  ).make({
+    clinic_id: -1,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send(rescheduledConsultation.toJSON())
+    .end()
+
+  response.assertStatus(404)
+})
+
+test('it should not reschedule consultation if new schedule does not exists', async ({
+  client,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: datetime.getTime(),
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const rescheduledConsultation = await Factory.model(
+    'App/Models/Consultation'
+  ).make({
+    doctor_id: doctorOne.id,
+    datetime: new Date(),
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send(rescheduledConsultation.toJSON())
+    .end()
+
+  response.assertStatus(404)
+})
+
+test('it should not reschedule consultation if new schedule is already taken', async ({
+  client,
+}) => {
+  const rescheduledDate = dateFns.addHours(datetime, 4)
+  await Factory.model('App/Models/Timetable').create({
+    datetime: rescheduledDate,
+    scheduled: true,
+    doctor_id: doctorTwo.id,
+    clinic_id: clinicTwo.id,
+  })
+
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime: datetime.getTime(),
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+  })
+
+  const rescheduledConsultation = await Factory.model(
+    'App/Models/Consultation'
+  ).make({
+    datetime: rescheduledDate.getTime(),
+    doctor_id: doctorTwo.id,
+    clinic_id: clinicTwo.id,
+  })
+
+  const response = await client
+    .patch(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send(rescheduledConsultation.toJSON())
+    .end()
+
+  response.assertStatus(400)
+})
+
 test('it should list all consultations', async ({ client, assert }) => {
   await Factory.model('App/Models/Consultation').create({
     datetime,
