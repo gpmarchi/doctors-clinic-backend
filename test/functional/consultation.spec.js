@@ -9,6 +9,7 @@ const Role = ioc.use('Adonis/Acl/Role')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
+const Mail = use('Mail')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
@@ -32,6 +33,7 @@ let assistant = null
 let patientOne = null
 let patientTwo = null
 let admin = null
+let clinicOwner = null
 let clinicOne = null
 let clinicTwo = null
 
@@ -42,8 +44,13 @@ before(async () => {
   await Role.truncate()
   await Clinic.truncate()
 
-  clinicOne = await Factory.model('App/Models/Clinic').create()
-  clinicTwo = await Factory.model('App/Models/Clinic').create()
+  clinicOwner = await Factory.model('App/Models/User').create()
+  clinicOne = await Factory.model('App/Models/Clinic').create({
+    owner_id: clinicOwner.id,
+  })
+  clinicTwo = await Factory.model('App/Models/Clinic').create({
+    owner_id: clinicOwner.id,
+  })
 
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'doctor',
@@ -61,10 +68,17 @@ before(async () => {
     slug: 'administrator',
   })
 
-  doctorOne = await Factory.model('App/Models/User').create()
+  const specialtyOne = await Factory.model('App/Models/Specialty').create()
+  const specialtyTwo = await Factory.model('App/Models/Specialty').create()
+
+  doctorOne = await Factory.model('App/Models/User').create({
+    specialty_id: specialtyOne.id,
+  })
   await doctorOne.roles().attach([doctorRole.id])
 
-  doctorTwo = await Factory.model('App/Models/User').create()
+  doctorTwo = await Factory.model('App/Models/User').create({
+    specialty_id: specialtyTwo.id,
+  })
   await doctorTwo.roles().attach([doctorRole.id])
 
   assistant = await Factory.model('App/Models/User').create({
@@ -95,6 +109,8 @@ after(async () => {
 })
 
 test('it should create a new consultation', async ({ client, assert }) => {
+  Mail.fake()
+
   await Factory.model('App/Models/Timetable').create({
     datetime,
     doctor_id: doctorOne.id,
@@ -123,6 +139,8 @@ test('it should create a new consultation', async ({ client, assert }) => {
       .fetch()
   ).toJSON()
 
+  const sentMail = Mail.pullRecent()
+
   response.assertStatus(200)
   assert.exists(response.body.id)
   assert.equal(response.body.datetime, consultation.datetime)
@@ -133,6 +151,12 @@ test('it should create a new consultation', async ({ client, assert }) => {
   assert.exists(response.body.doctor)
   assert.exists(response.body.patient)
   assert.equal(timetables[0].scheduled, 1)
+  assert.equal(sentMail.message.to[0].address, patientOne.toJSON().email)
+  assert.equal(sentMail.message.from.address, clinicOwner.toJSON().email)
+  assert.equal(
+    sentMail.message.subject,
+    'Confirmação de agendamento de consulta'
+  )
 })
 
 test('it should create a new consultation by assistant', async ({
