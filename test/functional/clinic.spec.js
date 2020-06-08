@@ -67,6 +67,8 @@ test('it should create a new clinic', async ({ client, assert }) => {
 
   response.assertStatus(200)
   assert.exists(response.body.id)
+  assert.equal(response.body.name, clinic.name)
+  assert.equal(response.body.phone, clinic.phone)
   assert.equal(response.body.cnpj, clinic.cnpj)
   assert.equal(response.body.owner.id, loginAdminOne.id)
 })
@@ -167,12 +169,13 @@ test('it should update an existing clinic', async ({ client, assert }) => {
   const response = await client
     .patch(`/clinics/${clinic.id}`)
     .loginVia(loginAdminOne)
-    .send({ name: 'name' })
+    .send({ name: 'name', phone: '123456' })
     .end()
 
   response.assertStatus(200)
   assert.exists(response.body.name)
   assert.equal(response.body.name, 'name')
+  assert.equal(response.body.phone, '123456')
 })
 
 test("it should update an existing clinic's specialties", async ({

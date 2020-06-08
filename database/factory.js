@@ -69,6 +69,7 @@ Factory.blueprint('Adonis/Acl/Permission', (faker, i, data = {}) => {
 Factory.blueprint('App/Models/Clinic', (faker, i, data = {}) => {
   return {
     name: faker.string(),
+    phone: faker.string({ alpha: false, numeric: true }),
     cnpj: faker.string({ length: 14, alpha: false, numeric: true }),
     ...data,
   }

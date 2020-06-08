@@ -8,6 +8,7 @@ class ClinicSchema extends Schema {
     this.create('clinics', (table) => {
       table.increments()
       table.string('name').notNullable()
+      table.string('phone').notNullable()
       table.string('cnpj').notNullable().unique()
       table
         .integer('owner_id')

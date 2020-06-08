@@ -8,6 +8,7 @@ class Clinic {
   get rules() {
     return {
       name: 'required|string',
+      phone: 'required',
       cnpj: 'required',
     }
   }

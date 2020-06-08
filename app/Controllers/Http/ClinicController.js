@@ -47,6 +47,7 @@ class ClinicController {
   async store({ request, response, antl, auth }) {
     const { address, specialties, ...data } = request.only([
       'name',
+      'phone',
       'cnpj',
       'address',
       'specialties',
@@ -126,6 +127,7 @@ class ClinicController {
   async update({ params, request, response, antl, auth }) {
     const { address, specialties, ...data } = request.only([
       'name',
+      'phone',
       'cnpj',
       'address',
       'specialties',
