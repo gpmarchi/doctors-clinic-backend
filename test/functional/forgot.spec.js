@@ -6,7 +6,8 @@ const crypto = use('crypto')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 const Mail = use('Mail')
-const Encryption = use('Encryption')
+/** @type {import('@adonisjs/framework/src/Hash')} */
+const Hash = use('Hash')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
@@ -22,16 +23,15 @@ before(async () => {
   await User.truncate()
 
   loginUser = await Factory.model('App/Models/User').create()
+
+  Mail.fake()
 })
 
 test('it should return reset password token', async ({ client, assert }) => {
-  Mail.fake()
-
   const response = await client
     .post('/users/forgot')
     .send({
       email: loginUser.email,
-      redirect_url: 'http://meusite.com/resetar_senha',
     })
     .end()
 
@@ -76,7 +76,7 @@ test('it should reset password based on token', async ({ client, assert }) => {
 
   response.assertStatus(204)
   assert.equal(user.id, loginUser.id)
-  assert.notEqual(user.password, Encryption.encrypt(password))
+  assert.isTrue(await Hash.verify(password, user.password))
   assert.notExists(user.token)
   assert.notExists(user.token_created_at)
 })
