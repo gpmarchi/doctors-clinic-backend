@@ -9,6 +9,7 @@ const Role = ioc.use('Adonis/Acl/Role')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
+const Mail = use('Mail')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
@@ -43,7 +44,11 @@ before(async () => {
     slug: 'patient',
   })
 
-  doctor = await Factory.model('App/Models/User').create()
+  const specialty = await Factory.model('App/Models/Specialty').create()
+
+  doctor = await Factory.model('App/Models/User').create({
+    specialty_id: specialty.id,
+  })
   await doctor.roles().attach([doctorRole.id])
 
   patientOne = await Factory.model('App/Models/User').create()
@@ -52,9 +57,17 @@ before(async () => {
   patientTwo = await Factory.model('App/Models/User').create()
   await patientTwo.roles().attach([patientRole.id])
 
-  clinicOneData = await Factory.model('App/Models/Clinic').create()
+  const clinicOwner = await Factory.model('App/Models/User').create()
 
-  clinicTwoData = await Factory.model('App/Models/Clinic').create()
+  clinicOneData = await Factory.model('App/Models/Clinic').create({
+    owner_id: clinicOwner.id,
+  })
+
+  clinicTwoData = await Factory.model('App/Models/Clinic').create({
+    owner_id: clinicOwner.id,
+  })
+
+  Mail.fake()
 })
 
 beforeEach(async () => {

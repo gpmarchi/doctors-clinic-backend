@@ -4,6 +4,14 @@
 const Model = use('Model')
 
 class Consultation extends Model {
+  static boot() {
+    super.boot()
+
+    this.addHook('beforeSave', [
+      'ConsultationHook.sendConsultationScheduleMail',
+    ])
+  }
+
   clinic() {
     return this.belongsTo('App/Models/Clinic', 'clinic_id', 'id')
   }

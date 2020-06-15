@@ -5,8 +5,6 @@
 
 const dateFns = use('date-fns')
 
-/** @typedef {import('@adonisjs/mail/src/Mail')} Mail */
-const Mail = use('Mail')
 const Database = use('Database')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
@@ -182,31 +180,6 @@ class ConsultationController {
     trx.commit()
 
     await consultation.loadMany(['clinic', 'doctor', 'patient'])
-
-    const consultationData = consultation.toJSON()
-    await doctor.load('specialty')
-    await clinic.load('owner')
-
-    await Mail.send(
-      ['emails.consultation_confirmation'],
-      {
-        pacient: consultationData.patient.fullname,
-        date: consultationData.datetime,
-        clinic: consultationData.clinic.name,
-        specialty: doctor.toJSON().specialty.name,
-        doctor: consultationData.doctor.name,
-        phone: consultationData.clinic.phone,
-      },
-      (message) => {
-        message
-          .to(consultationData.patient.email)
-          .from(
-            clinic.toJSON().owner.email,
-            `${clinic.toJSON().owner.name} | Doctor's Clinic`
-          )
-          .subject('Confirmação de agendamento de consulta')
-      }
-    )
 
     return consultation
   }
