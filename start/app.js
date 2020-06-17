@@ -21,6 +21,8 @@ const providers = [
   'adonis-acl/providers/AclProvider',
   '@adonisjs/mail/providers/MailProvider',
   '@adonisjs/framework/providers/ViewProvider',
+  '@adonisjs/redis/providers/RedisProvider',
+  'adonis-kue/providers/KueProvider',
 ]
 
 /*
@@ -36,6 +38,7 @@ const aceProviders = [
   '@adonisjs/lucid/providers/MigrationsProvider',
   '@adonisjs/vow/providers/VowProvider',
   'adonis-acl/providers/CommandsProvider',
+  'adonis-kue/providers/CommandsProvider',
 ]
 
 /*
@@ -65,4 +68,17 @@ const aliases = {
 */
 const commands = []
 
-module.exports = { providers, aceProviders, aliases, commands }
+/*
+|--------------------------------------------------------------------------
+| Jobs
+|--------------------------------------------------------------------------
+|
+| Here you store your queue jobs
+|
+*/
+const jobs = [
+  'App/Jobs/ForgotPasswordMail',
+  'App/Jobs/ConsultationScheduleMail',
+]
+
+module.exports = { providers, aceProviders, aliases, commands, jobs }

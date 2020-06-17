@@ -1,7 +1,8 @@
 'use strict'
 
-/** @typedef {import('@adonisjs/mail/src/Mail')} Mail */
-const Mail = use('Mail')
+const Kue = use('Kue')
+const Job = use('App/Jobs/ConsultationScheduleMail')
+
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
@@ -23,25 +24,18 @@ ConsultationHook.sendConsultationScheduleMail = async (
     const clinic = await Clinic.find(consultationInstance.clinic_id)
     await clinic.load('owner')
 
-    await Mail.send(
-      ['emails.consultation_confirmation'],
+    Kue.dispatch(
+      Job.key,
       {
-        pacient: patient.toJSON().fullname,
+        patient: patient.toJSON(),
         date: consultationInstance.datetime,
         clinic: clinic.name,
         specialty: doctor.toJSON().specialty.name,
         doctor: doctor.toJSON().fullname,
         phone: clinic.phone,
+        owner: clinic.toJSON().owner,
       },
-      (message) => {
-        message
-          .to(patient.email)
-          .from(
-            clinic.toJSON().owner.email,
-            `${clinic.toJSON().owner.fullname} | Doctor's Clinic`
-          )
-          .subject('Confirmação de agendamento de consulta')
-      }
+      { attempts: 3 }
     )
   }
 }

@@ -5,7 +5,6 @@ const crypto = use('crypto')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
-const Mail = use('Mail')
 /** @type {import('@adonisjs/framework/src/Hash')} */
 const Hash = use('Hash')
 
@@ -23,8 +22,6 @@ before(async () => {
   await User.truncate()
 
   loginUser = await Factory.model('App/Models/User').create()
-
-  Mail.fake()
 })
 
 test('it should return reset password token', async ({ client, assert }) => {
@@ -37,16 +34,11 @@ test('it should return reset password token', async ({ client, assert }) => {
 
   const user = await User.findBy('email', loginUser.email)
 
-  const sentMail = Mail.pullRecent()
-
   response.assertStatus(204)
   assert.equal(user.id, loginUser.id)
   assert.equal(user.email, loginUser.email)
   assert.exists(user.token)
   assert.exists(user.token_created_at)
-  assert.equal(sentMail.message.to[0].address, loginUser.email)
-  assert.equal(sentMail.message.from.address, 'admin@email.com')
-  assert.equal(sentMail.message.subject, 'Recuperação de senha')
 })
 
 test('it should not return reset password token if user does not exists', async ({

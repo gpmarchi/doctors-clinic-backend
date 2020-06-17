@@ -5,11 +5,9 @@ const dateFns = use('date-fns')
 const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
-// ioc.use('Adonis/Acl/HasRole')
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
-const Mail = use('Mail')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
@@ -98,8 +96,6 @@ before(async () => {
 
   admin = await Factory.model('App/Models/User').create()
   await admin.roles().attach([adminRole.id])
-
-  Mail.fake()
 })
 
 beforeEach(async () => {
@@ -143,8 +139,6 @@ test('it should create a new consultation', async ({ client, assert }) => {
       .fetch()
   ).toJSON()
 
-  const sentMail = Mail.pullRecent()
-
   response.assertStatus(200)
   assert.exists(response.body.id)
   assert.equal(response.body.datetime, consultation.datetime)
@@ -155,12 +149,6 @@ test('it should create a new consultation', async ({ client, assert }) => {
   assert.exists(response.body.doctor)
   assert.exists(response.body.patient)
   assert.equal(timetables[0].scheduled, 1)
-  assert.equal(sentMail.message.to[0].address, patientOne.toJSON().email)
-  assert.equal(sentMail.message.from.address, clinicOwnerOne.toJSON().email)
-  assert.equal(
-    sentMail.message.subject,
-    'Confirmação de agendamento de consulta'
-  )
 })
 
 test('it should create a new consultation by assistant', async ({
@@ -196,8 +184,6 @@ test('it should create a new consultation by assistant', async ({
       .fetch()
   ).toJSON()
 
-  const sentMail = Mail.pullRecent()
-
   response.assertStatus(200)
   assert.exists(response.body.id)
   assert.equal(response.body.datetime, consultation.datetime)
@@ -208,12 +194,6 @@ test('it should create a new consultation by assistant', async ({
   assert.exists(response.body.doctor)
   assert.exists(response.body.patient)
   assert.equal(timetables[0].scheduled, 1)
-  assert.equal(sentMail.message.to[0].address, patientTwo.toJSON().email)
-  assert.equal(sentMail.message.from.address, clinicOwnerOne.toJSON().email)
-  assert.equal(
-    sentMail.message.subject,
-    'Confirmação de agendamento de consulta'
-  )
 })
 
 test('it should not create a new consultation for another patient if not assistant', async ({
@@ -455,8 +435,6 @@ test("it should reschedule a pacient's existing consultation", async ({
       .fetch()
   ).toJSON()
 
-  const sentMail = Mail.pullRecent()
-
   response.assertStatus(200)
   assert.equal(response.body.id, consultation.id)
   assert.equal(response.body.datetime, rescheduledDate.getTime())
@@ -468,12 +446,6 @@ test("it should reschedule a pacient's existing consultation", async ({
   assert.exists(response.body.patient)
   assert.equal(oldTimetable.scheduled, 0)
   assert.equal(newTimetable.scheduled, 1)
-  assert.equal(sentMail.message.to[0].address, patientOne.toJSON().email)
-  assert.equal(sentMail.message.from.address, clinicOwnerTwo.toJSON().email)
-  assert.equal(
-    sentMail.message.subject,
-    'Confirmação de agendamento de consulta'
-  )
 })
 
 test("it should reschedule any pacient's existing consultation if assistant", async ({
@@ -530,8 +502,6 @@ test("it should reschedule any pacient's existing consultation if assistant", as
       .fetch()
   ).toJSON()
 
-  const sentMail = Mail.pullRecent()
-
   response.assertStatus(200)
   assert.equal(response.body.id, consultation.id)
   assert.equal(response.body.datetime, rescheduledDate.getTime())
@@ -543,12 +513,6 @@ test("it should reschedule any pacient's existing consultation if assistant", as
   assert.exists(response.body.patient)
   assert.equal(oldTimetable.scheduled, 0)
   assert.equal(newTimetable.scheduled, 1)
-  assert.equal(sentMail.message.to[0].address, patientOne.toJSON().email)
-  assert.equal(sentMail.message.from.address, clinicOwnerTwo.toJSON().email)
-  assert.equal(
-    sentMail.message.subject,
-    'Confirmação de agendamento de consulta'
-  )
 })
 
 test('it should not reschedule inexistent consultation', async ({ client }) => {
