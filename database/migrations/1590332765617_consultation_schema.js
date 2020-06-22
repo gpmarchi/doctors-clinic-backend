@@ -9,6 +9,7 @@ class ConsultationSchema extends Schema {
       table.increments()
       table.timestamp('datetime').notNullable()
       table.boolean('is_return').notNullable().defaultTo(false)
+      table.boolean('confirmed').notNullable().defaultTo(false)
       table
         .integer('patient_id')
         .unsigned()

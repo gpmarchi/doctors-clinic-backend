@@ -122,6 +122,7 @@ Factory.blueprint('App/Models/Consultation', (faker, i, data = {}) => {
   return {
     datetime: faker.timestamp(),
     is_return: faker.bool({ likelihood: 0 }),
+    confirmed: faker.bool({ likelihood: 0 }),
     ...data,
   }
 })

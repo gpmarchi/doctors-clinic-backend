@@ -53,6 +53,11 @@ Route.group(() => {
     'is:(patient or assistant)'
   )
 
+  Route.patch(
+    '/confirmations/consultation/:id',
+    'ConfirmationController.update'
+  ).middleware('is:patient')
+
   Route.get(
     '/patient/consultations',
     'PatientConsultationController.index'

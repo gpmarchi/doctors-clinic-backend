@@ -9,6 +9,7 @@ class Consultation {
     return {
       datetime: 'required|date',
       is_return: 'required|boolean',
+      confirmed: 'required|boolean',
       patient_id: 'integer',
       doctor_id: 'required|integer',
       clinic_id: 'required|integer',
