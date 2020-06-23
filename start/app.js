@@ -80,6 +80,7 @@ const jobs = [
   'App/Jobs/ForgotPasswordMail',
   'App/Jobs/ConsultationScheduleMail',
   'App/Jobs/ConsultationConfirmationMail',
+  'App/Jobs/ConsultationCancelation',
 ]
 
 module.exports = { providers, aceProviders, aliases, commands, jobs }
