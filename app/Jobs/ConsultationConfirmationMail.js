@@ -1,5 +1,7 @@
 'use strict'
 
+const Env = use('Env')
+
 const Kue = use('Kue')
 /** @typedef {import('@adonisjs/mail/src/Mail')} Mail */
 const Mail = use('Mail')
@@ -64,7 +66,7 @@ class ConsultationConfirmationMail {
           clinic: consultation.clinic.name,
           specialty: consultation.doctor.specialty.name,
           doctor: consultation.doctor.fullname,
-          link: 'http://meusite.com/confirmSchedule',
+          link: Env.get('CONSULTATION_CONFIRMATION_URL') + `${consultation.id}`,
         },
         (message) => {
           message
