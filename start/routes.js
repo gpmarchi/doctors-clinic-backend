@@ -54,6 +54,11 @@ Route.group(() => {
   )
 
   Route.patch(
+    '/consultation/:id/exams',
+    'ExamRequestsController.update'
+  ).middleware('is:doctor')
+
+  Route.patch(
     '/confirmations/consultation/:id',
     'ConfirmationController.update'
   ).middleware('is:patient')

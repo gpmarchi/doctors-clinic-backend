@@ -23,6 +23,18 @@ class Consultation extends Model {
   patient() {
     return this.belongsTo('App/Models/User', 'patient_id', 'id')
   }
+
+  exams() {
+    return this.belongsToMany(
+      'App/Models/Exam',
+      'consultation_id',
+      'exam_id',
+      'id',
+      'id'
+    )
+      .pivotTable('exam_requests')
+      .withTimestamps()
+  }
 }
 
 module.exports = Consultation
