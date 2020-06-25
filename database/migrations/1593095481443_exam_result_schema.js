@@ -3,32 +3,33 @@
 /** @type {import('@adonisjs/lucid/src/Schema')} */
 const Schema = use('Schema')
 
-class ExamRequestsSchema extends Schema {
+class ExamResultSchema extends Schema {
   up() {
-    this.create('exam_requests', (table) => {
+    this.create('exam_results', (table) => {
       table.increments()
+      table.text('short_report').notNullable()
       table.date('date').notNullable()
       table
-        .integer('exam_id')
+        .integer('exam_request_id')
         .unsigned()
         .references('id')
-        .inTable('exams')
+        .inTable('exam_requests')
         .onUpdate('CASCADE')
         .onDelete('RESTRICT')
       table
-        .integer('consultation_id')
+        .integer('report_id')
         .unsigned()
         .references('id')
-        .inTable('consultations')
+        .inTable('files')
         .onUpdate('CASCADE')
-        .onDelete('CASCADE')
+        .onDelete('SET NULL')
       table.timestamps()
     })
   }
 
   down() {
-    this.drop('exam_requests')
+    this.drop('exam_results')
   }
 }
 
-module.exports = ExamRequestsSchema
+module.exports = ExamResultSchema

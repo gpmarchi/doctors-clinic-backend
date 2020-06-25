@@ -126,3 +126,11 @@ Factory.blueprint('App/Models/Consultation', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/ExamResult', (faker, i, data = {}) => {
+  return {
+    short_report: faker.sentence(),
+    date: faker.date(),
+    ...data,
+  }
+})

@@ -39,16 +39,13 @@ Route.group(() => {
   Route.get('/consultations', 'ConsultationController.index').middleware(
     'is:assistant'
   )
-
   Route.delete(
     '/consultations/:id',
     'ConsultationController.destroy'
   ).middleware('is:(patient or assistant)')
-
   Route.post('/consultations', 'ConsultationController.store')
     .validator('Consultation')
     .middleware('is:(patient or assistant)')
-
   Route.patch('/consultations/:id', 'ConsultationController.update').middleware(
     'is:(patient or assistant)'
   )
@@ -72,6 +69,11 @@ Route.group(() => {
     '/doctor/consultations',
     'DoctorConsultationController.index'
   ).middleware('is:doctor')
+
+  Route.resource('/exam/results', 'ExamResultController')
+    .apiOnly()
+    .validator(new Map([[['/exam/results.store'], ['ExamResult']]]))
+    .middleware('is:doctor')
 
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()

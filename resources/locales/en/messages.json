@@ -29,5 +29,6 @@
   "consultation.not.found": "Consultation not found.",
   "consultation.cancel.unauthorized": "You are not authorized to cancel this consultation.",
   "consultation.cancel.period": "You are only allowed to cancel a consultation 3+ days in advance.",
-  "consultation.exam.requests": "You must provide the requested exams."
+  "consultation.exam.requests": "You must provide the requested exams.",
+  "consultation.exam.request.not.found": "You must provide the requested exams."
 }
