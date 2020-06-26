@@ -4,6 +4,8 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const File = use('App/Models/File')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const ExamRequest = use('App/Models/ExamRequest')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const ExamResult = use('App/Models/ExamResult')
@@ -32,12 +34,24 @@ class ExamResultController {
    * @param {AuthSession} ctx.auth
    */
   async store({ request, response, antl, auth }) {
-    const { exam_request_id, ...data } = request.only([
+    const { exam_request_id, report_id, ...data } = request.only([
       'short_report',
       'date',
       'exam_request_id',
       'report_id',
     ])
+
+    if (report_id) {
+      const report = await File.find(report_id)
+
+      if (!report) {
+        return response.status(404).send({
+          error: antl.formatMessage(
+            'messages.consultation.exam.result.report.not.found'
+          ),
+        })
+      }
+    }
 
     const examRequest = await ExamRequest.find(exam_request_id)
 
@@ -62,6 +76,7 @@ class ExamResultController {
     const examResult = await ExamResult.create({
       ...data,
       exam_request_id,
+      report_id,
     })
 
     await examResult.load('report')
@@ -86,8 +101,61 @@ class ExamResultController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response, antl, auth }) {
+    const examResult = await ExamResult.find(params.id)
+
+    if (!examResult) {
+      return response.status(404).send({
+        error: antl.formatMessage(
+          'messages.consultation.exam.result.not.found'
+        ),
+      })
+    }
+
+    const { report_id, ...data } = request.only([
+      'short_report',
+      'date',
+      'report_id',
+    ])
+
+    if (report_id) {
+      const report = await File.find(report_id)
+
+      if (!report) {
+        return response.status(404).send({
+          error: antl.formatMessage(
+            'messages.consultation.exam.result.report.not.found'
+          ),
+        })
+      }
+    }
+
+    const examRequest = await ExamRequest.find(
+      examResult.toJSON().exam_request_id
+    )
+    await examRequest.load('consultation')
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== examRequest.toJSON().consultation.doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.update.unauthorized') })
+    }
+
+    examResult.merge({
+      ...data,
+      report_id: report_id || examResult.report_id,
+    })
+
+    await examResult.save()
+
+    await examResult.load('report')
+
+    return examResult
+  }
 
   /**
    * Delete a examresult with id.
