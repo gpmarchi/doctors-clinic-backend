@@ -33,6 +33,7 @@ class Consultation extends Model {
       'id'
     )
       .pivotTable('exam_requests')
+      .withPivot(['id', 'date'])
       .withTimestamps()
   }
 }
