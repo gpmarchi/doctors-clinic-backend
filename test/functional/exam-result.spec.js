@@ -1,5 +1,8 @@
 'use strict'
 
+const fs = require('fs')
+const path = require('path')
+
 const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
@@ -346,4 +349,107 @@ test("it should not update another doctor's exam results", async ({
 
   response.assertStatus(401)
   assert.equal(unchangedExamResult.short_report, examResult.short_report)
+})
+
+test('it should delete an exam result', async ({ assert, client }) => {
+  const filename = Date.now() + '.pdf'
+  const clientName = 'examreport.pdf'
+
+  fs.copyFileSync(
+    path.resolve(__dirname, '..', 'fixtures', clientName),
+    path.resolve(__dirname, '..', '..', 'tmp', 'uploads', filename)
+  )
+
+  const report = await Factory.model('App/Models/File').create({
+    file: filename,
+    name: clientName,
+    subtype: 'pdf',
+  })
+
+  const examRequest = await ExamRequest.findBy(
+    'consultation_id',
+    consultation.id
+  )
+
+  const examResult = await Factory.model('App/Models/ExamResult').create({
+    exam_request_id: examRequest.id,
+    report_id: report.id,
+  })
+
+  const response = await client
+    .delete(`/exam/results/${examResult.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  const deletedExamResult = await ExamResult.find(examResult.id)
+  const deletedReport = await File.find(report.id)
+  const tmpFiles = fs.readdirSync(
+    path.resolve(__dirname, '..', '..', 'tmp', 'uploads')
+  )
+
+  response.assertStatus(204)
+  assert.notExists(deletedExamResult)
+  assert.notExists(deletedReport)
+  assert.isEmpty(tmpFiles)
+})
+
+test('it should delete an exam result with no report', async ({
+  assert,
+  client,
+}) => {
+  const examRequest = await ExamRequest.findBy(
+    'consultation_id',
+    consultation.id
+  )
+
+  const examResult = await Factory.model('App/Models/ExamResult').create({
+    exam_request_id: examRequest.id,
+  })
+
+  const response = await client
+    .delete(`/exam/results/${examResult.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  const deletedExamResult = await ExamResult.find(examResult.id)
+
+  response.assertStatus(204)
+  assert.notExists(deletedExamResult)
+})
+
+test('it should not delete an inexistent exam result', async ({ client }) => {
+  const response = await client
+    .delete('/exam/results/-1')
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not delete another doctor's exam result", async ({
+  assert,
+  client,
+}) => {
+  const examRequest = await ExamRequest.findBy(
+    'consultation_id',
+    consultation.id
+  )
+
+  const examResult = await Factory.model('App/Models/ExamResult').create({
+    exam_request_id: examRequest.id,
+  })
+
+  const response = await client
+    .delete(`/exam/results/${examResult.id}`)
+    .loginVia(doctorTwo)
+    .send()
+    .end()
+
+  const deletedExamResult = await ExamResult.find(examResult.id)
+
+  response.assertStatus(401)
+  assert.exists(deletedExamResult)
 })

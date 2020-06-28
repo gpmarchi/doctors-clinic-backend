@@ -70,10 +70,15 @@ Route.group(() => {
     'DoctorConsultationController.index'
   ).middleware('is:doctor')
 
-  Route.resource('/exam/results', 'ExamResultController')
-    .apiOnly()
-    .validator(new Map([[['/exam/results.store'], ['ExamResult']]]))
+  Route.post('/exam/results', 'ExamResultController.store')
+    .validator('ExamResult')
     .middleware('is:doctor')
+  Route.patch('/exam/results/:id', 'ExamResultController.update').middleware(
+    'is:doctor'
+  )
+  Route.delete('/exam/results/:id', 'ExamResultController.destroy').middleware(
+    'is:doctor'
+  )
 
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()

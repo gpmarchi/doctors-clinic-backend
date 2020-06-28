@@ -22,7 +22,7 @@ class ExamResultSchema extends Schema {
         .references('id')
         .inTable('files')
         .onUpdate('CASCADE')
-        .onDelete('SET NULL')
+        .onDelete('RESTRICT')
       table.timestamps()
     })
   }
