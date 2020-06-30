@@ -122,6 +122,11 @@ Route.group(() => {
     .validator(new Map([[['conditions.store'], ['Condition']]]))
     .middleware('is:administrator')
 
+  Route.resource('surgeries', 'SurgeryController')
+    .apiOnly()
+    .validator(new Map([[['surgeries.store'], ['Surgery']]]))
+    .middleware('is:administrator')
+
   Route.resource('timetables', 'TimetableController')
     .apiOnly()
     .validator(new Map([[['timetables.store'], ['Timetable']]]))

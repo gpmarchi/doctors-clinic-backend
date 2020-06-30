@@ -110,6 +110,14 @@ Factory.blueprint('App/Models/Condition', (faker, i, data = {}) => {
   }
 })
 
+Factory.blueprint('App/Models/Surgery', (faker, i, data = {}) => {
+  return {
+    name: faker.string(),
+    description: faker.paragraph(),
+    ...data,
+  }
+})
+
 Factory.blueprint('App/Models/Timetable', (faker, i, data = {}) => {
   return {
     datetime: faker.timestamp(),

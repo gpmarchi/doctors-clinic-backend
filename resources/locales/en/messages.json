@@ -20,6 +20,7 @@
   "medicine.not.found": "Medicine not found.",
   "exam.not.found": "Exam not found.",
   "condition.not.found": "Condition not found.",
+  "surgery.not.found": "Surgery not found.",
   "timetable.not.found": "Timetable not found.",
   "timetable.datetime.already.registered": "Datetime already registered for the doctor",
   "expired.token": "Password reset token expired.",
