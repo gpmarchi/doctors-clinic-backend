@@ -6,8 +6,8 @@ const Factory = use('Factory')
 /** @typedef {import('@adonisjs/ignitor/src/Helpers')} Helpers */
 const Helpers = use('Helpers')
 
-const path = use('path')
-const fs = use('fs')
+const path = require('path')
+const fs = require('fs')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const File = use('App/Models/File')
@@ -29,7 +29,9 @@ before(async () => {
 })
 
 after(async () => {
-  fs.rmdirSync(Helpers.tmpPath('uploads'), { recursive: true })
+  const tmpUploadsDir = Helpers.tmpPath('uploads')
+  const files = fs.readdirSync(tmpUploadsDir)
+  files.map((file) => fs.unlinkSync(path.join(tmpUploadsDir, file)))
 })
 
 test('it should create a new file', async ({ client, assert }) => {
