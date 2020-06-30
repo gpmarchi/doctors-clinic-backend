@@ -21,6 +21,7 @@
   "exam.not.found": "Exam not found.",
   "condition.not.found": "Condition not found.",
   "surgery.not.found": "Surgery not found.",
+  "surgery.operation.date": "Surgery must have operation date",
   "timetable.not.found": "Timetable not found.",
   "timetable.datetime.already.registered": "Datetime already registered for the doctor",
   "expired.token": "Password reset token expired.",
@@ -33,5 +34,6 @@
   "consultation.exam.requests": "You must provide the requested exams.",
   "consultation.exam.request.not.found": "You must provide the requested exams.",
   "consultation.exam.result.not.found": "Exam result not found.",
-  "consultation.exam.result.report.not.found": "Report file not found."
+  "consultation.exam.result.report.not.found": "Report file not found.",
+  "consultation.diagnostic.already.exists": "Consultation already has a diagnostic."
 }

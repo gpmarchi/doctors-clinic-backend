@@ -142,3 +142,10 @@ Factory.blueprint('App/Models/ExamResult', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Diagnostic', (faker, i, data = {}) => {
+  return {
+    report: faker.sentence(),
+    ...data,
+  }
+})

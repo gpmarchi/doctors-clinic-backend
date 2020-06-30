@@ -36,6 +36,10 @@ class Consultation extends Model {
       .withPivot(['id', 'date'])
       .withTimestamps()
   }
+
+  diagnostic() {
+    return this.hasOne('App/Models/Diagnostic')
+  }
 }
 
 module.exports = Consultation

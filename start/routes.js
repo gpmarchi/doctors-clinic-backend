@@ -131,4 +131,9 @@ Route.group(() => {
     .apiOnly()
     .validator(new Map([[['timetables.store'], ['Timetable']]]))
     .middleware('is:(doctor or administrator)')
+
+  Route.resource('diagnostics', 'DiagnosticController')
+    .apiOnly()
+    .validator(new Map([[['diagnostics.store'], ['Diagnostic']]]))
+    .middleware('is:doctor')
 }).middleware(['auth'])
