@@ -149,11 +149,9 @@ class ExamResultController {
    * @param {AuthSession} ctx.auth
    */
   async destroy({ params, request, response, antl, auth }) {
-    // 1. verificar se o id passado como parâmetro existe
     const examResult = await ExamResult.find(params.id)
 
     if (!examResult) {
-      // 2. se não existir retornar erro
       return response.status(404).send({
         error: antl.formatMessage(
           'messages.consultation.exam.result.not.found'
@@ -163,32 +161,26 @@ class ExamResultController {
 
     const examResultData = examResult.toJSON()
 
-    // 3. verificar se o resultado pertence ao médico logado
     const examRequest = await ExamRequest.find(examResultData.exam_request_id)
     await examRequest.load('consultation')
 
     const loggedUser = await auth.getUser()
 
     if (loggedUser.id !== examRequest.toJSON().consultation.doctor_id) {
-      // 4. se não pertencer retornar erro
       return response
         .status(401)
         .send({ error: antl.formatMessage('messages.update.unauthorized') })
     }
 
-    // 5. se existir o report_id buscar as informações do arquivo
     if (examResultData.report_id) {
       const report = await File.find(examResultData.report_id)
 
-      // 7. excluir a referência do arquivo do banco de dados
       await report.delete()
 
-      // 8. excluir o arquivo do relatório salvo na pasta tmp
       const reportData = report.toJSON()
       await Drive.delete(`${reportData.file}`)
     }
 
-    // 6. excluir o resultado do exame pelo id
     await examResult.delete()
   }
 }
