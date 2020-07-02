@@ -17,16 +17,6 @@ const Diagnostic = use('App/Models/Diagnostic')
  */
 class DiagnosticController {
   /**
-   * Show a list of all diagnostics.
-   * GET diagnostics
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async index({ request, response }) {}
-
-  /**
    * Create/save a new diagnostic.
    * POST diagnostics
    *
@@ -107,16 +97,6 @@ class DiagnosticController {
 
     return diagnostic
   }
-
-  /**
-   * Display a single diagnostic.
-   * GET diagnostics/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async show({ params, request, response }) {}
 
   /**
    * Update diagnostic details.

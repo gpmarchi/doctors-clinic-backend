@@ -25,16 +25,16 @@ const { test, trait, before, beforeEach, after } = use('Test/Suite')(
 trait('Test/ApiClient')
 trait('Auth/Client')
 
-let doctorOne = null
-let doctorTwo = null
-let assistant = null
-let patientOne = null
-let patientTwo = null
-let admin = null
-let clinicOwnerOne = null
-let clinicOwnerTwo = null
-let clinicOne = null
-let clinicTwo = null
+let doctorOne
+let doctorTwo
+let assistantOne
+let patientOne
+let patientTwo
+let admin
+let clinicOwnerOne
+let clinicOwnerTwo
+let clinicOne
+let clinicTwo
 
 const datetime = new Date()
 
@@ -83,10 +83,10 @@ before(async () => {
   })
   await doctorTwo.roles().attach([doctorRole.id])
 
-  assistant = await Factory.model('App/Models/User').create({
+  assistantOne = await Factory.model('App/Models/User').create({
     clinic_id: clinicOne.id,
   })
-  await assistant.roles().attach([assistantRole.id])
+  await assistantOne.roles().attach([assistantRole.id])
 
   patientOne = await Factory.model('App/Models/User').create()
   await patientOne.roles().attach([patientRole.id])
@@ -105,7 +105,7 @@ beforeEach(async () => {
 
 after(async () => {
   await doctorOne.roles().delete()
-  await assistant.roles().delete()
+  await assistantOne.roles().delete()
   await patientOne.roles().delete()
   await admin.roles().delete()
 })
@@ -171,7 +171,7 @@ test('it should create a new consultation by assistant', async ({
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send(consultation)
     .end()
 
@@ -228,7 +228,7 @@ test('it should not create a new consultation if patient id not provided by assi
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send(consultation)
     .end()
 
@@ -307,7 +307,7 @@ test('it should not create a new consultation if informed patient user by assist
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send(consultation)
     .end()
 
@@ -327,7 +327,7 @@ test('it should not create a new consultation if informed patient user by assist
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send(consultation)
     .end()
 
@@ -476,7 +476,7 @@ test("it should reschedule any pacient's existing consultation if assistant", as
 
   const response = await client
     .patch(`/consultations/${consultation.id}`)
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send({
       datetime: rescheduledDate.getTime(),
       doctor_id: doctorTwo.id,
@@ -701,7 +701,7 @@ test('it should list all consultations', async ({ client, assert }) => {
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send()
     .end()
 
@@ -742,7 +742,7 @@ test("it should list all consultations from logged in assistant's clinic by date
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .query({
       start_date: dateFns.getTime(start_date),
       end_date: dateFns.getTime(end_date),
@@ -781,7 +781,7 @@ test("it should list all consultations from logged in assistant's clinic by pati
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .query({
       patient_id: patientOne.id,
     })
@@ -819,7 +819,7 @@ test("it should list all consultations from logged in assistant's clinic by doct
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .query({
       doctor_id: doctorOne.id,
     })
@@ -850,7 +850,7 @@ test("it should list all consultations from logged in assistant's clinic", async
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send()
     .end()
 
@@ -887,7 +887,7 @@ test("it should list all return consultations from logged in assistant's clinic"
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .query({
       is_return: true,
     })
@@ -896,6 +896,160 @@ test("it should list all return consultations from logged in assistant's clinic"
 
   response.assertStatus(200)
   assert.equal(response.body.length, 3)
+})
+
+test("it should show any assistant's clinic consultation by id if assistant", async ({
+  client,
+  assert,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(assistantOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, consultation.id)
+  assert.exists(response.body.patient)
+  assert.exists(response.body.doctor)
+  assert.exists(response.body.clinic)
+  assert.isEmpty(response.body.exams)
+  assert.notExists(response.body.diagnostic)
+})
+
+test("it should show patient's consultation by id if patient", async ({
+  client,
+  assert,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(patientOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, consultation.id)
+  assert.exists(response.body.patient)
+  assert.exists(response.body.doctor)
+  assert.exists(response.body.clinic)
+  assert.isEmpty(response.body.exams)
+  assert.notExists(response.body.diagnostic)
+})
+
+test("it should show doctor's consultation by id if doctor", async ({
+  client,
+  assert,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, consultation.id)
+  assert.exists(response.body.patient)
+  assert.exists(response.body.doctor)
+  assert.exists(response.body.clinic)
+  assert.isEmpty(response.body.exams)
+  assert.notExists(response.body.diagnostic)
+})
+
+test('it should not show inexistent consultation', async ({ client }) => {
+  const response = await client
+    .get('/consultations/-1')
+    .loginVia(assistantOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not show another assistant clinic's consultation by id if assistant", async ({
+  client,
+  assert,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(assistantOne)
+    .send()
+    .end()
+
+  response.assertStatus(401)
+})
+
+test("it should not show another patient's consultation by id if patient", async ({
+  client,
+  assert,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(patientTwo)
+    .send()
+    .end()
+
+  response.assertStatus(401)
+})
+
+test("it should not show another doctor's consultation by id if doctor", async ({
+  client,
+  assert,
+}) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicTwo.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(doctorTwo)
+    .send()
+    .end()
+
+  response.assertStatus(401)
 })
 
 test("it should cancel a logged in patient's consultation", async ({
@@ -962,7 +1116,7 @@ test("it should cancel any patient's consultation in my clinic if assistant", as
 
   const response = await client
     .delete(`/consultations/${consultation.id}`)
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send()
     .end()
 
@@ -997,7 +1151,7 @@ test("it should not cancel any patient's consultation not in my clinic if assist
 
   const response = await client
     .delete(`/consultations/${consultation.id}`)
-    .loginVia(assistant)
+    .loginVia(assistantOne)
     .send()
     .end()
 
