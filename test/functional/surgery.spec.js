@@ -104,7 +104,10 @@ test('it should update an existent surgery', async ({ client, assert }) => {
   assert.equal(response.body.specialty_id, surgeryData.specialty_id)
 })
 
-test('it should not update an existent surgery', async ({ client, assert }) => {
+test('it should not update an inexistent surgery', async ({
+  client,
+  assert,
+}) => {
   const surgery = await Factory.model('App/Models/Surgery').create({
     specialty_id: specialty.id,
   })
