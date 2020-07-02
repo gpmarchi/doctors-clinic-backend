@@ -35,5 +35,6 @@
   "consultation.exam.request.not.found": "You must provide the requested exams.",
   "consultation.exam.result.not.found": "Exam result not found.",
   "consultation.exam.result.report.not.found": "Report file not found.",
-  "consultation.diagnostic.already.exists": "Consultation already has a diagnostic."
+  "consultation.diagnostic.already.exists": "Consultation already has a diagnostic.",
+  "consultation.diagnostic.not.found": "Consultation diagnostic not found."
 }

@@ -125,8 +125,73 @@ class DiagnosticController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response, antl, auth }) {
+    const { condition_id, surgery_id, operation_date, report } = request.only([
+      'report',
+      'condition_id',
+      'surgery_id',
+      'operation_date',
+    ])
+
+    const diagnostic = await Diagnostic.find(params.id)
+
+    if (!diagnostic) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.consultation.diagnostic.not.found'),
+      })
+    }
+
+    const loggedUser = await auth.getUser()
+
+    const diagnosticData = diagnostic.toJSON()
+
+    const consultation = await Consultation.find(diagnosticData.consultation_id)
+
+    if (loggedUser.id !== consultation.toJSON().doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.update.unauthorized') })
+    }
+
+    if (condition_id) {
+      const condition = await Condition.find(condition_id)
+
+      if (!condition) {
+        return response.status(404).send({
+          error: antl.formatMessage('messages.condition.not.found'),
+        })
+      }
+    }
+
+    if (surgery_id) {
+      const surgery = await Surgery.find(surgery_id)
+
+      if (!surgery) {
+        return response.status(404).send({
+          error: antl.formatMessage('messages.surgery.not.found'),
+        })
+      }
+
+      if (!operation_date && !diagnostic.toJSON().operation_date) {
+        return response.status(400).send({
+          error: antl.formatMessage('messages.surgery.operation.date'),
+        })
+      }
+    }
+
+    diagnostic.merge({
+      report: report || diagnosticData.report,
+      condition_id: condition_id || diagnosticData.condition_id,
+      surgery_id: surgery_id || diagnosticData.surgery_id,
+      operation_date: operation_date || diagnosticData.operation_date,
+    })
+
+    await diagnostic.save()
+
+    return diagnostic
+  }
 
   /**
    * Delete a diagnostic with id.
