@@ -27,7 +27,7 @@ trait('Auth/Client')
 
 let doctorOne
 let doctorTwo
-let assistantOne
+let assistant
 let patientOne
 let patientTwo
 let admin
@@ -83,10 +83,10 @@ before(async () => {
   })
   await doctorTwo.roles().attach([doctorRole.id])
 
-  assistantOne = await Factory.model('App/Models/User').create({
+  assistant = await Factory.model('App/Models/User').create({
     clinic_id: clinicOne.id,
   })
-  await assistantOne.roles().attach([assistantRole.id])
+  await assistant.roles().attach([assistantRole.id])
 
   patientOne = await Factory.model('App/Models/User').create()
   await patientOne.roles().attach([patientRole.id])
@@ -105,8 +105,10 @@ beforeEach(async () => {
 
 after(async () => {
   await doctorOne.roles().delete()
-  await assistantOne.roles().delete()
+  await doctorTwo.roles().delete()
+  await assistant.roles().delete()
   await patientOne.roles().delete()
+  await patientTwo.roles().delete()
   await admin.roles().delete()
 })
 
@@ -171,7 +173,7 @@ test('it should create a new consultation by assistant', async ({
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send(consultation)
     .end()
 
@@ -228,7 +230,7 @@ test('it should not create a new consultation if patient id not provided by assi
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send(consultation)
     .end()
 
@@ -307,7 +309,7 @@ test('it should not create a new consultation if informed patient user by assist
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send(consultation)
     .end()
 
@@ -327,7 +329,7 @@ test('it should not create a new consultation if informed patient user by assist
 
   const response = await client
     .post('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send(consultation)
     .end()
 
@@ -476,7 +478,7 @@ test("it should reschedule any pacient's existing consultation if assistant", as
 
   const response = await client
     .patch(`/consultations/${consultation.id}`)
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send({
       datetime: rescheduledDate.getTime(),
       doctor_id: doctorTwo.id,
@@ -701,7 +703,7 @@ test('it should list all consultations', async ({ client, assert }) => {
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
@@ -742,7 +744,7 @@ test("it should list all consultations from logged in assistant's clinic by date
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .query({
       start_date: dateFns.getTime(start_date),
       end_date: dateFns.getTime(end_date),
@@ -781,7 +783,7 @@ test("it should list all consultations from logged in assistant's clinic by pati
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .query({
       patient_id: patientOne.id,
     })
@@ -819,7 +821,7 @@ test("it should list all consultations from logged in assistant's clinic by doct
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .query({
       doctor_id: doctorOne.id,
     })
@@ -850,7 +852,7 @@ test("it should list all consultations from logged in assistant's clinic", async
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
@@ -887,7 +889,7 @@ test("it should list all return consultations from logged in assistant's clinic"
 
   const response = await client
     .get('/consultations')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .query({
       is_return: true,
     })
@@ -912,7 +914,7 @@ test("it should show any assistant's clinic consultation by id if assistant", as
 
   const response = await client
     .get(`/consultations/${consultation.id}`)
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
@@ -982,7 +984,7 @@ test("it should show doctor's consultation by id if doctor", async ({
 test('it should not show inexistent consultation', async ({ client }) => {
   const response = await client
     .get('/consultations/-1')
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
@@ -1003,7 +1005,7 @@ test("it should not show another assistant clinic's consultation by id if assist
 
   const response = await client
     .get(`/consultations/${consultation.id}`)
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
@@ -1116,7 +1118,7 @@ test("it should cancel any patient's consultation in my clinic if assistant", as
 
   const response = await client
     .delete(`/consultations/${consultation.id}`)
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
@@ -1151,7 +1153,7 @@ test("it should not cancel any patient's consultation not in my clinic if assist
 
   const response = await client
     .delete(`/consultations/${consultation.id}`)
-    .loginVia(assistantOne)
+    .loginVia(assistant)
     .send()
     .end()
 
