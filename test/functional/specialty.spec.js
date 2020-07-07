@@ -4,6 +4,8 @@ const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -14,9 +16,7 @@ const Specialty = use('App/Models/Specialty')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Clinic = use('App/Models/Clinic')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')(
-  'Specialty'
-)
+const { test, trait, before, beforeEach } = use('Test/Suite')('Specialty')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -26,6 +26,7 @@ let loginUser = null
 before(async () => {
   await User.truncate()
   await Role.truncate()
+  await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
 
@@ -38,10 +39,6 @@ before(async () => {
 beforeEach(async () => {
   await Specialty.truncate()
   await Clinic.truncate()
-})
-
-after(async () => {
-  await loginUser.roles().delete()
 })
 
 test('it should create a new specialty', async ({ client, assert }) => {

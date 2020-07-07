@@ -1,5 +1,7 @@
 'use strict'
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -17,20 +19,18 @@ const Specialty = use('App/Models/Specialty')
 const Role = ioc.use('Adonis/Acl/Role')
 ioc.use('Adonis/Acl/HasRole')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')('Clinic')
+const { test, trait, before, beforeEach } = use('Test/Suite')('Clinic')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
-let loginUser = null
 let loginAdminOne = null
 let loginAdminTwo = null
 
 before(async () => {
   await User.truncate()
   await Role.truncate()
-
-  loginUser = await Factory.model('App/Models/User').create()
+  await Database.truncate('role_user')
 
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
@@ -48,11 +48,6 @@ beforeEach(async () => {
   await Address.truncate()
   await Clinic.truncate()
   await Specialty.truncate()
-})
-
-after(async () => {
-  await loginUser.roles().delete()
-  await loginAdminOne.roles().delete()
 })
 
 test('it should create a new clinic', async ({ client, assert }) => {

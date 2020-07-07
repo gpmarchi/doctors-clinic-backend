@@ -4,6 +4,8 @@ const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -14,7 +16,7 @@ const Clinic = use('App/Models/Clinic')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Consultation = use('App/Models/Consultation')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+const { test, trait, before, beforeEach } = use('Test/Suite')(
   'Consultation Confirmation'
 )
 
@@ -30,6 +32,7 @@ before(async () => {
   await User.truncate()
   await Role.truncate()
   await Clinic.truncate()
+  await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
   clinic = await Factory.model('App/Models/Clinic').create({
@@ -58,11 +61,6 @@ before(async () => {
 
 beforeEach(async () => {
   await Consultation.truncate()
-})
-
-after(async () => {
-  await doctor.roles().delete()
-  await patientOne.roles().delete()
 })
 
 test("it should confirm a patient's consultation schedule", async ({

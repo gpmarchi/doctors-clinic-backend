@@ -5,8 +5,9 @@ const dateFns = use('date-fns')
 const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
-// ioc.use('Adonis/Acl/HasRole')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 const Mail = use('Mail')
@@ -18,7 +19,7 @@ const Clinic = use('App/Models/Clinic')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Consultation = use('App/Models/Consultation')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+const { test, trait, before, beforeEach } = use('Test/Suite')(
   'Doctor Consultation'
 )
 
@@ -35,6 +36,7 @@ before(async () => {
   await User.truncate()
   await Role.truncate()
   await Clinic.truncate()
+  await Database.truncate('role_user')
 
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'doctor',
@@ -72,12 +74,6 @@ before(async () => {
 
 beforeEach(async () => {
   await Consultation.truncate()
-})
-
-after(async () => {
-  await doctor.roles().delete()
-  await patientOne.roles().delete()
-  await patientTwo.roles().delete()
 })
 
 test("it should list all logged in doctor's scheduled consultations", async ({

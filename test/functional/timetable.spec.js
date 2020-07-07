@@ -3,8 +3,9 @@
 const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
-// ioc.use('Adonis/Acl/HasRole')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -15,9 +16,7 @@ const Clinic = use('App/Models/Clinic')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Timetable = use('App/Models/Timetable')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')(
-  'Timetable'
-)
+const { test, trait, before, beforeEach } = use('Test/Suite')('Timetable')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -32,6 +31,7 @@ before(async () => {
   await Role.truncate()
   await Clinic.truncate()
   await Timetable.truncate()
+  await Database.truncate('role_user')
 
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'doctor',
@@ -55,12 +55,6 @@ before(async () => {
 
 beforeEach(async () => {
   await Timetable.truncate()
-})
-
-after(async () => {
-  await loginDoctorOne.roles().delete()
-  await loginDoctorTwo.roles().delete()
-  await loginAdmin.roles().delete()
 })
 
 test('it should create a new timetable', async ({ client, assert }) => {

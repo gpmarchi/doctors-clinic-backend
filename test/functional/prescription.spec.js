@@ -4,6 +4,8 @@ const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -22,9 +24,7 @@ const Diagnostic = use('App/Models/Diagnostic')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Prescription = use('App/Models/Prescription')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')(
-  'Prescription'
-)
+const { test, trait, before, beforeEach } = use('Test/Suite')('Prescription')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -43,6 +43,7 @@ before(async () => {
   await Medicine.truncate()
   await Condition.truncate()
   await Diagnostic.truncate()
+  await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
 
@@ -93,12 +94,6 @@ before(async () => {
 
 beforeEach(async () => {
   await Prescription.truncate()
-})
-
-after(async () => {
-  await doctorOne.roles().delete()
-  await doctorTwo.roles().delete()
-  await patient.roles().delete()
 })
 
 test('it should create a new prescription', async ({ client, assert }) => {

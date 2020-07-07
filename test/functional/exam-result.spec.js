@@ -7,6 +7,8 @@ const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -25,9 +27,7 @@ const ExamRequest = use('App/Models/ExamRequest')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const ExamResult = use('App/Models/ExamResult')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')(
-  'Exam Result'
-)
+const { test, trait, before, beforeEach } = use('Test/Suite')('Exam Result')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -50,6 +50,7 @@ before(async () => {
   await Consultation.truncate()
   await ExamRequest.truncate()
   await ExamResult.truncate()
+  await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
   const clinic = await Factory.model('App/Models/Clinic').create({
@@ -98,14 +99,6 @@ before(async () => {
 
 beforeEach(async () => {
   await ExamResult.truncate()
-})
-
-after(async () => {
-  await doctorOne.roles().delete()
-  await doctorTwo.roles().delete()
-  await patientOne.roles().delete()
-  await patientTwo.roles().delete()
-  await consultation.exams().delete()
 })
 
 test('it should create an exam result', async ({ assert, client }) => {

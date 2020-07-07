@@ -4,6 +4,8 @@ const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -14,13 +16,14 @@ const Specialty = use('App/Models/Specialty')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Clinic = use('App/Models/Clinic')
 
-const { test, trait, before, after } = use('Test/Suite')('Clinic Schedule')
+const { test, trait, before } = use('Test/Suite')('Clinic Schedule')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
 let patient = null
 let doctorOne = null
+let doctorTwo = null
 let specialtyOne = null
 let clinicOne = null
 let clinicTwo = null
@@ -31,6 +34,7 @@ before(async () => {
   await Role.truncate()
   await Specialty.truncate()
   await Clinic.truncate()
+  await Database.truncate('role_user')
 
   const patientRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'patient',
@@ -53,10 +57,10 @@ before(async () => {
   })
   await doctorOne.roles().attach([doctorRole.toJSON().id])
 
-  const doctorTwo = await Factory.model('App/Models/User').create({
+  doctorTwo = await Factory.model('App/Models/User').create({
     specialty_id: specialtyTwo.id,
   })
-  await doctorOne.roles().attach([doctorRole.toJSON().id])
+  await doctorTwo.roles().attach([doctorRole.toJSON().id])
 
   clinicOne = await Factory.model('App/Models/Clinic').create()
   await clinicOne.specialties().attach([specialtyOne.id, specialtyTwo.id])
@@ -83,12 +87,6 @@ before(async () => {
     clinic_id: clinicTwo.id,
     doctor_id: doctorOne.id,
   })
-})
-
-after(async () => {
-  await patient.roles().delete()
-  await doctorOne.roles().delete()
-  await assistant.roles().delete()
 })
 
 test('it should return the clinic with a list of doctors filtered by specialty with available timetables', async ({

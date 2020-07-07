@@ -4,6 +4,8 @@ const { ioc } = require('@adonisjs/fold')
 
 const Role = ioc.use('Adonis/Acl/Role')
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -12,7 +14,7 @@ const User = use('App/Models/User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Exam = use('App/Models/Exam')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')('Exam')
+const { test, trait, before, beforeEach } = use('Test/Suite')('Exam')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -23,6 +25,7 @@ before(async () => {
   await User.truncate()
   await Role.truncate()
   await Exam.truncate()
+  await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
 
@@ -34,10 +37,6 @@ before(async () => {
 
 beforeEach(async () => {
   await Exam.truncate()
-})
-
-after(async () => {
-  await loginUser.roles().delete()
 })
 
 test('it should create a new exam', async ({ client, assert }) => {
