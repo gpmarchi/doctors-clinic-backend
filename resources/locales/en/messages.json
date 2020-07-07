@@ -1,4 +1,9 @@
 {
+  "enum.medicine.frequency.unit.month": "Month(s)",
+  "enum.medicine.frequency.unit.week": "Week(s)",
+  "enum.medicine.frequency.unit.day": "Day(s)",
+  "enum.medicine.frequency.unit.hour": "Hour(s)",
+
   "insert.unauthorized": "Access forbidden. You are not authorized to create this resource.",
   "show.unauthorized": "Access forbidden. You are not authorized to view this resource.",
   "update.unauthorized": "Access forbidden. You are not authorized to update this resource.",
@@ -36,5 +41,8 @@
   "consultation.exam.result.not.found": "Exam result not found.",
   "consultation.exam.result.report.not.found": "Report file not found.",
   "consultation.diagnostic.already.exists": "Consultation already has a diagnostic.",
-  "consultation.diagnostic.not.found": "Consultation diagnostic not found."
+  "consultation.diagnostic.not.found": "Consultation diagnostic not found.",
+  "prescription.invalid.expiration.date": "Invalid expiration date",
+  "prescription.invalid.medication.frequency": "Invalid medication amount or frequency",
+  "prescription.invalid.medication.frequency.unit": "Invalid medication frequency unit"
 }

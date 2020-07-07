@@ -149,3 +149,13 @@ Factory.blueprint('App/Models/Diagnostic', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Prescription', (faker, i, data = {}) => {
+  return {
+    expires_on: faker.date(),
+    medicine_amount: faker.integer({ min: 1 }),
+    medicine_frequency: faker.integer({ min: 1 }),
+    medicine_frequency_unit: 'DAY',
+    ...data,
+  }
+})
