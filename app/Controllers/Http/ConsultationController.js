@@ -193,11 +193,9 @@ class ConsultationController {
    * @param {AuthSession} ctx.auth
    */
   async show({ params, response, antl, auth }) {
-    // 1. verificar se o id passado como parâmetro é uma consulta válida
     const consultation = await Consultation.find(params.id)
 
     if (!consultation) {
-      // 2. se não for retornar erro
       return response.status(404).send({
         error: antl.formatMessage('messages.consultation.not.found'),
       })
@@ -207,41 +205,33 @@ class ConsultationController {
 
     const loggedUser = await auth.getUser()
 
-    // 3. se o usuário logado for assistente, verificar se a consulta pertence à
-    // sua clínica
     if (
       (await loggedUser.is('assistant')) &&
       loggedUser.clinic_id !== consultationData.clinic_id
     ) {
-      // 4. se não for da sua clínica retornar erro
       return response.status(401).send({
         error: antl.formatMessage('messages.show.unauthorized'),
       })
     }
 
-    // 5. se o usuário logado for paciente, verificar se a consulta lhe pertence
     if (
       (await loggedUser.is('patient')) &&
       loggedUser.id !== consultationData.patient_id
     ) {
-      // 6. se não pertencer ao paciente retornar erro
       return response.status(401).send({
         error: antl.formatMessage('messages.show.unauthorized'),
       })
     }
 
-    // 7. se o usuário logado for médico, verificar se a consulta lhe pertence
     if (
       (await loggedUser.is('doctor')) &&
       loggedUser.id !== consultationData.doctor_id
     ) {
-      // 8. se não pertencer ao médico retornar erro
       return response.status(401).send({
         error: antl.formatMessage('messages.show.unauthorized'),
       })
     }
 
-    // 9. ao passar pelas validações carregar os objetos associados
     await consultation.loadMany([
       'patient',
       'doctor',
@@ -250,7 +240,6 @@ class ConsultationController {
       'diagnostic',
     ])
 
-    // 10. retornar os dados da consulta
     return consultation
   }
 

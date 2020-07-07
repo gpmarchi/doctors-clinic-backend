@@ -59,8 +59,6 @@ class ConditionController {
       })
     }
 
-    // await condition.load('specialty')
-
     return condition
   }
 
