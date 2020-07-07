@@ -1,5 +1,7 @@
 'use strict'
 
+/** @type {import('@adonisjs/lucid/src/Database')} */
+const Database = use('Database')
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
@@ -20,39 +22,46 @@ ioc.use('Adonis/Acl/HasRole')
 const Permission = ioc.use('Adonis/Acl/Permission')
 ioc.use('Adonis/Acl/HasPermission')
 
-const { test, trait, before, beforeEach, after } = use('Test/Suite')('User')
+const { test, trait, before, beforeEach } = use('Test/Suite')('User')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
 
-let loginUser = null
-let loginAdmin = null
+let loginUser
+let loginAdmin
+let doctorRole
+let insertUserPermission
 
 before(async () => {
   await User.truncate()
   await Role.truncate()
   await File.truncate()
+  await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
 
   loginAdmin = await Factory.model('App/Models/User').create()
+
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
   await loginAdmin.roles().attach([adminRole.toJSON().id])
+
+  doctorRole = await Factory.model('Adonis/Acl/Role').create({
+    slug: 'doctor',
+  })
+
+  insertUserPermission = await Factory.model('Adonis/Acl/Permission').create({
+    slug: 'can insert user',
+  })
 })
 
 beforeEach(async () => {
   await User.query().where('id', '>', '2').delete()
   await Address.truncate()
   await Specialty.truncate()
-  await Role.query().where('id', '>', '1').delete()
-  await Permission.truncate()
-})
-
-after(async () => {
-  await loginUser.roles().delete()
-  await loginAdmin.roles().delete()
+  await Role.query().where('id', '>', '2').delete()
+  await Permission.query().where('id', '>', '1').delete()
 })
 
 test('it should create a new user', async ({ client, assert }) => {
@@ -70,6 +79,54 @@ test('it should create a new user', async ({ client, assert }) => {
   assert.exists(response.body.fullname)
   assert.equal(response.body.username, user.username)
   assert.equal(response.body.fullname, `${user.first_name} ${user.last_name}`)
+})
+
+test('it should create a new user with role', async ({ client, assert }) => {
+  const user = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+
+  const userData = { roles: [doctorRole.id], ...user.$attributes }
+
+  const response = await client.post('/users').send(userData).end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.exists(response.body.fullname)
+  assert.equal(response.body.username, userData.username)
+  assert.equal(
+    response.body.fullname,
+    `${userData.first_name} ${userData.last_name}`
+  )
+  assert.include(response.body.roles[0], doctorRole.toJSON())
+})
+
+test('it should create a new user with permission', async ({
+  client,
+  assert,
+}) => {
+  const user = await Factory.model('App/Models/User').make({
+    password: 'slkj239ru!',
+    password_confirmation: 'slkj239ru!',
+  })
+
+  const userData = {
+    permissions: [insertUserPermission.id],
+    ...user.$attributes,
+  }
+
+  const response = await client.post('/users').send(userData).end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.username)
+  assert.exists(response.body.fullname)
+  assert.equal(response.body.username, userData.username)
+  assert.equal(
+    response.body.fullname,
+    `${userData.first_name} ${userData.last_name}`
+  )
+  assert.include(response.body.permissions[0], insertUserPermission.toJSON())
 })
 
 test('it should create a new user with avatar', async ({ client, assert }) => {

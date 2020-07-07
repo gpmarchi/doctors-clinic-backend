@@ -31,7 +31,7 @@ class UserController {
    * @param {Response} ctx.response
    */
   async store({ request, response, antl }) {
-    const { address, ...data } = request.only([
+    const { address, roles, permissions, ...data } = request.only([
       'username',
       'email',
       'password',
@@ -43,6 +43,8 @@ class UserController {
       'avatar_id',
       'specialty_id',
       'clinic_id',
+      'roles',
+      'permissions',
     ])
 
     const trx = await Database.beginTransaction()
@@ -66,7 +68,22 @@ class UserController {
 
     trx.commit()
 
-    await user.loadMany(['address', 'specialty', 'avatar', 'clinic'])
+    if (roles) {
+      await user.roles().attach(roles)
+    }
+
+    if (permissions) {
+      await user.permissions().attach(permissions)
+    }
+
+    await user.loadMany([
+      'address',
+      'specialty',
+      'avatar',
+      'clinic',
+      'roles',
+      'permissions',
+    ])
 
     return user
   }
