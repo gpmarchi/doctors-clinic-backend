@@ -10,10 +10,10 @@ class User {
       username: 'required|unique:users',
       email: 'required|email|unique:users',
       password: 'required|confirmed',
-      first_name: 'required',
-      last_name: 'required',
-      age: 'required',
-      phone: 'required',
+      first_name: 'required|string',
+      last_name: 'required|string',
+      birthdate: 'required|date',
+      phone: 'required|string',
     }
   }
 

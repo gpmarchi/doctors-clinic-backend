@@ -12,7 +12,7 @@ class UserSchema extends Schema {
       table.string('password').notNullable()
       table.string('first_name').notNullable()
       table.string('last_name').notNullable()
-      table.integer('age').notNullable()
+      table.date('birthdate').notNullable()
       table.string('phone').notNullable()
       table.string('token')
       table.timestamp('token_created_at')

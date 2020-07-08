@@ -21,7 +21,7 @@ Factory.blueprint('App/Models/User', (faker, i, data = {}) => {
     password: faker.string(),
     first_name: faker.first(),
     last_name: faker.last(),
-    age: faker.age(),
+    birthdate: faker.birthday(),
     phone: faker.phone(),
     ...data,
   }
