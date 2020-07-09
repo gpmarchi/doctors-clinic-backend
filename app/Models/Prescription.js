@@ -5,7 +5,7 @@ const Model = use('Model')
 
 class Prescription extends Model {
   medicine() {
-    return this.belongsTo('App/Models/Medicine')
+    return this.hasOne('App/Models/Medicine', 'medicine_id', 'id')
   }
 }
 
