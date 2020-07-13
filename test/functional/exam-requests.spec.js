@@ -18,7 +18,7 @@ const Exam = use('App/Models/Exam')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Consultation = use('App/Models/Consultation')
 
-const { test, trait, before, beforeEach } = use('Test/Suite')('Exam Requests')
+const { test, trait, before } = use('Test/Suite')('Exam Requests')
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -31,11 +31,11 @@ let consultation = null
 let exams = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
-  await Exam.truncate()
-  await Consultation.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
+  await Exam.query().delete()
+  await Consultation.query().delete()
   await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
@@ -78,11 +78,7 @@ before(async () => {
   exams = await Factory.model('App/Models/Exam').createMany(4)
 })
 
-beforeEach(async () => {
-  await consultation.exams().delete()
-})
-
-test("is should save a consultation's exam requests", async ({
+test("it should save a consultation's exam requests", async ({
   assert,
   client,
 }) => {
@@ -102,7 +98,7 @@ test("is should save a consultation's exam requests", async ({
   assert.equal(response.body.exams.length, 4)
 })
 
-test('is should not save exam requests in inexistent consultation', async ({
+test('it should not save exam requests in inexistent consultation', async ({
   assert,
   client,
 }) => {
@@ -123,7 +119,7 @@ test('is should not save exam requests in inexistent consultation', async ({
   assert.equal(originalConsultation.exams.length, 0)
 })
 
-test("is should not save another doctor consultation's exam requests", async ({
+test("it should not save another doctor consultation's exam requests", async ({
   assert,
   client,
 }) => {
@@ -144,7 +140,7 @@ test("is should not save another doctor consultation's exam requests", async ({
   assert.equal(originalConsultation.exams.length, 0)
 })
 
-test("is should not save a consultation's exam requests if no exams are provided", async ({
+test("it should not save a consultation's exam requests if no exams are provided", async ({
   assert,
   client,
 }) => {
@@ -159,22 +155,4 @@ test("is should not save a consultation's exam requests if no exams are provided
 
   response.assertStatus(400)
   assert.equal(originalConsultation.exams.length, 0)
-})
-
-test("is should not save consultation's exam requests if invalid exam ids are provided", async ({
-  assert,
-  client,
-}) => {
-  const examIds = ['a', 'b']
-
-  const response = await client
-    .patch(`/consultation/${consultation.id}/exams`)
-    .loginVia(doctorOne)
-    .send({
-      exams: examIds,
-    })
-    .end()
-
-  response.assertStatus(200)
-  assert.equal(response.body.exams.length, 0)
 })

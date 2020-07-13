@@ -22,9 +22,9 @@ trait('Auth/Client')
 let loginUser = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Exam.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Exam.query().delete()
   await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
@@ -36,7 +36,7 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Exam.truncate()
+  await Exam.query().delete()
 })
 
 test('it should create a new exam', async ({ client, assert }) => {

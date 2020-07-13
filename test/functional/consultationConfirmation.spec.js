@@ -29,9 +29,9 @@ let patientOne = null
 let patientTwo = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
   await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
@@ -60,7 +60,7 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Consultation.truncate()
+  await Consultation.query().delete()
 })
 
 test("it should confirm a patient's consultation schedule", async ({

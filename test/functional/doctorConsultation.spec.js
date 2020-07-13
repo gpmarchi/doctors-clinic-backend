@@ -33,9 +33,9 @@ let clinicOneData = null
 let clinicTwoData = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
   await Database.truncate('role_user')
 
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
@@ -73,7 +73,7 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Consultation.truncate()
+  await Consultation.query().delete()
 })
 
 test("it should list all logged in doctor's scheduled consultations", async ({
@@ -135,7 +135,7 @@ test("it should list all logged in doctor's scheduled consultations by period", 
   const response = await client
     .get('/doctor/consultations')
     .loginVia(doctor)
-    .query({ start_date: startDate.getTime(), end_date: endDate.getTime() })
+    .query({ start_date: startDate, end_date: endDate })
     .send()
     .end()
 

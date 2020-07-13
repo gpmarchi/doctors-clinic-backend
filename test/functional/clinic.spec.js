@@ -28,8 +28,8 @@ let loginAdminOne = null
 let loginAdminTwo = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
+  await User.query().delete()
+  await Role.query().delete()
   await Database.truncate('role_user')
 
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
@@ -45,9 +45,9 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Address.truncate()
-  await Clinic.truncate()
-  await Specialty.truncate()
+  await Address.query().delete()
+  await Clinic.query().delete()
+  await Specialty.query().delete()
 })
 
 test('it should create a new clinic', async ({ client, assert }) => {

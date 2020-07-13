@@ -120,7 +120,7 @@ Factory.blueprint('App/Models/Surgery', (faker, i, data = {}) => {
 
 Factory.blueprint('App/Models/Timetable', (faker, i, data = {}) => {
   return {
-    datetime: faker.timestamp(),
+    datetime: new Date(),
     scheduled: faker.bool({ likelihood: 0 }),
     ...data,
   }
@@ -128,7 +128,7 @@ Factory.blueprint('App/Models/Timetable', (faker, i, data = {}) => {
 
 Factory.blueprint('App/Models/Consultation', (faker, i, data = {}) => {
   return {
-    datetime: faker.timestamp(),
+    datetime: new Date(),
     is_return: faker.bool({ likelihood: 0 }),
     confirmed: faker.bool({ likelihood: 0 }),
     ...data,
@@ -153,8 +153,8 @@ Factory.blueprint('App/Models/Diagnostic', (faker, i, data = {}) => {
 Factory.blueprint('App/Models/Prescription', (faker, i, data = {}) => {
   return {
     expires_on: faker.date(),
-    medicine_amount: faker.integer({ min: 1 }),
-    medicine_frequency: faker.integer({ min: 1 }),
+    medicine_amount: faker.integer({ min: 1, max: 10 }),
+    medicine_frequency: faker.integer({ min: 1, max: 10 }),
     medicine_frequency_unit: 'DAY',
     ...data,
   }

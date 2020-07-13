@@ -30,10 +30,10 @@ let clinicTwo = null
 let assistant = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Specialty.truncate()
-  await Clinic.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Specialty.query().delete()
+  await Clinic.query().delete()
   await Database.truncate('role_user')
 
   const patientRole = await Factory.model('Adonis/Acl/Role').create({

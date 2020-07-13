@@ -39,9 +39,9 @@ let clinicTwo
 const datetime = new Date()
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
   await Database.truncate('role_user')
 
   clinicOwnerOne = await Factory.model('App/Models/User').create()
@@ -100,8 +100,8 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Consultation.truncate()
-  await Timetable.truncate()
+  await Consultation.query().delete()
+  await Timetable.query().delete()
 })
 
 test('it should create a new consultation', async ({ client, assert }) => {
@@ -112,7 +112,7 @@ test('it should create a new consultation', async ({ client, assert }) => {
   })
 
   const consultationData = await Factory.model('App/Models/Consultation').make({
-    datetime: datetime.getTime(),
+    datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
   })
@@ -127,7 +127,7 @@ test('it should create a new consultation', async ({ client, assert }) => {
   const timetables = (
     await Timetable.query()
       .where({
-        datetime: datetime.getTime(),
+        datetime,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -135,7 +135,10 @@ test('it should create a new consultation', async ({ client, assert }) => {
 
   response.assertStatus(200)
   assert.exists(response.body.id)
-  assert.equal(response.body.datetime, consultation.datetime)
+  assert.equal(
+    new Date(response.body.datetime).getTime(),
+    new Date(consultation.datetime).getTime()
+  )
   assert.equal(response.body.clinic_id, consultation.clinic_id)
   assert.equal(response.body.doctor_id, doctorOne.id)
   assert.equal(response.body.patient_id, patientOne.id)
@@ -156,7 +159,7 @@ test('it should create a new consultation by assistant', async ({
   })
 
   const consultationData = await Factory.model('App/Models/Consultation').make({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientTwo.id,
@@ -172,7 +175,7 @@ test('it should create a new consultation by assistant', async ({
   const timetables = (
     await Timetable.query()
       .where({
-        datetime: datetime.getTime(),
+        datetime: datetime,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -180,7 +183,10 @@ test('it should create a new consultation by assistant', async ({
 
   response.assertStatus(200)
   assert.exists(response.body.id)
-  assert.equal(response.body.datetime, consultation.datetime)
+  assert.equal(
+    new Date(response.body.datetime).getTime(),
+    new Date(consultation.datetime).getTime()
+  )
   assert.equal(response.body.clinic_id, consultation.clinic_id)
   assert.equal(response.body.doctor_id, doctorOne.id)
   assert.equal(response.body.patient_id, patientTwo.id)
@@ -332,7 +338,7 @@ test("it should not create a new consultation if doctor's timetable does not exi
   client,
 }) => {
   const consultationData = await Factory.model('App/Models/Consultation').make({
-    datetime: new Date(1900, 1, 1, 0, 0, 0, 0).getTime(),
+    datetime: new Date(1900, 1, 1, 0, 0, 0, 0),
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
   })
@@ -350,7 +356,7 @@ test("it should not create a new consultation if doctor's timetable does not exi
 test("it should not create a new consultation if doctor's timetable is already scheduled", async ({
   client,
 }) => {
-  const datetime = new Date(1800, 1, 1, 0, 0, 0, 0).getTime()
+  const datetime = new Date(1800, 1, 1, 0, 0, 0, 0)
 
   await Factory.model('App/Models/Timetable').create({
     datetime,
@@ -375,7 +381,7 @@ test("it should not create a new consultation if doctor's timetable is already s
   response.assertStatus(400)
 })
 
-test("it should reschedule a pacient's existing consultation", async ({
+test("it should reschedule a patient's existing consultation", async ({
   client,
   assert,
 }) => {
@@ -405,7 +411,7 @@ test("it should reschedule a pacient's existing consultation", async ({
     .patch(`/consultations/${consultation.id}`)
     .loginVia(patientOne)
     .send({
-      datetime: rescheduledDate.getTime(),
+      datetime: rescheduledDate,
       doctor_id: doctorTwo.id,
       clinic_id: clinicTwo.id,
     })
@@ -414,7 +420,7 @@ test("it should reschedule a pacient's existing consultation", async ({
   const [oldTimetable] = (
     await Timetable.query()
       .where({
-        datetime: datetime.getTime(),
+        datetime: datetime,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -423,7 +429,7 @@ test("it should reschedule a pacient's existing consultation", async ({
   const [newTimetable] = (
     await Timetable.query()
       .where({
-        datetime: rescheduledDate.getTime(),
+        datetime: rescheduledDate,
         doctor_id: doctorTwo.id,
       })
       .fetch()
@@ -431,7 +437,10 @@ test("it should reschedule a pacient's existing consultation", async ({
 
   response.assertStatus(200)
   assert.equal(response.body.id, consultation.id)
-  assert.equal(response.body.datetime, rescheduledDate.getTime())
+  assert.equal(
+    new Date(response.body.datetime).getTime(),
+    rescheduledDate.getTime()
+  )
   assert.equal(response.body.clinic_id, clinicTwo.id)
   assert.equal(response.body.doctor_id, doctorTwo.id)
   assert.equal(response.body.patient_id, patientOne.id)
@@ -442,7 +451,7 @@ test("it should reschedule a pacient's existing consultation", async ({
   assert.equal(newTimetable.scheduled, 1)
 })
 
-test("it should reschedule any pacient's existing consultation if assistant", async ({
+test("it should reschedule any patient's existing consultation if assistant", async ({
   client,
   assert,
 }) => {
@@ -472,7 +481,7 @@ test("it should reschedule any pacient's existing consultation if assistant", as
     .patch(`/consultations/${consultation.id}`)
     .loginVia(assistant)
     .send({
-      datetime: rescheduledDate.getTime(),
+      datetime: rescheduledDate,
       doctor_id: doctorTwo.id,
       clinic_id: clinicTwo.id,
     })
@@ -481,7 +490,7 @@ test("it should reschedule any pacient's existing consultation if assistant", as
   const [oldTimetable] = (
     await Timetable.query()
       .where({
-        datetime: datetime.getTime(),
+        datetime: datetime,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -490,7 +499,7 @@ test("it should reschedule any pacient's existing consultation if assistant", as
   const [newTimetable] = (
     await Timetable.query()
       .where({
-        datetime: rescheduledDate.getTime(),
+        datetime: rescheduledDate,
         doctor_id: doctorTwo.id,
       })
       .fetch()
@@ -498,7 +507,10 @@ test("it should reschedule any pacient's existing consultation if assistant", as
 
   response.assertStatus(200)
   assert.equal(response.body.id, consultation.id)
-  assert.equal(response.body.datetime, rescheduledDate.getTime())
+  assert.equal(
+    new Date(response.body.datetime).getTime(),
+    rescheduledDate.getTime()
+  )
   assert.equal(response.body.clinic_id, clinicTwo.id)
   assert.equal(response.body.doctor_id, doctorTwo.id)
   assert.equal(response.body.patient_id, patientOne.id)
@@ -523,7 +535,7 @@ test("it should not reschedule another patient's consultation if not assistant",
   client,
 }) => {
   const consultation = await Factory.model('App/Models/Consultation').create({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientOne.id,
@@ -542,7 +554,7 @@ test('it should not reschedule consultation if doctor does not exists', async ({
   client,
 }) => {
   const consultation = await Factory.model('App/Models/Consultation').create({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientOne.id,
@@ -569,7 +581,7 @@ test('it should not reschedule consultation if provided doctor is not a doctor',
   client,
 }) => {
   const consultation = await Factory.model('App/Models/Consultation').create({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientOne.id,
@@ -596,7 +608,7 @@ test('it should not reschedule consultation if clinic does not exists', async ({
   client,
 }) => {
   const consultation = await Factory.model('App/Models/Consultation').create({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientOne.id,
@@ -621,7 +633,7 @@ test('it should not reschedule consultation if new schedule does not exists', as
   client,
 }) => {
   const consultation = await Factory.model('App/Models/Consultation').create({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientOne.id,
@@ -655,7 +667,7 @@ test('it should not reschedule consultation if new schedule is already taken', a
   })
 
   const consultation = await Factory.model('App/Models/Consultation').create({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicOne.id,
     doctor_id: doctorOne.id,
     patient_id: patientOne.id,
@@ -664,7 +676,7 @@ test('it should not reschedule consultation if new schedule is already taken', a
   const rescheduledConsultation = await Factory.model(
     'App/Models/Consultation'
   ).make({
-    datetime: rescheduledDate.getTime(),
+    datetime: rescheduledDate,
     doctor_id: doctorTwo.id,
     clinic_id: clinicTwo.id,
   })
@@ -738,8 +750,8 @@ test("it should list all consultations from logged in assistant's clinic by date
     .get('/consultations')
     .loginVia(assistant)
     .query({
-      start_date: dateFns.getTime(start_date),
-      end_date: dateFns.getTime(end_date),
+      start_date: start_date,
+      end_date: end_date,
     })
     .send()
     .end()
@@ -1075,7 +1087,7 @@ test("it should cancel a logged in patient's consultation", async ({
   const timetables = (
     await Timetable.query()
       .where({
-        datetime: validTimetableDate.getTime(),
+        datetime: validTimetableDate,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -1117,7 +1129,7 @@ test("it should cancel any patient's consultation in my clinic if assistant", as
   const timetables = (
     await Timetable.query()
       .where({
-        datetime: validTimetableDate.getTime(),
+        datetime: validTimetableDate,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -1127,7 +1139,7 @@ test("it should cancel any patient's consultation in my clinic if assistant", as
 
   response.assertStatus(204)
   assert.notExists(deletedConsultation)
-  assert.equal(timetables[0].scheduled, 0)
+  assert.equal(timetables[0].scheduled, false)
 })
 
 test("it should not cancel any patient's consultation not in my clinic if assistant", async ({
@@ -1213,7 +1225,7 @@ test("it should not cancel a logged in patient's consultation if not within canc
   const timetables = (
     await Timetable.query()
       .where({
-        datetime: datetime.getTime(),
+        datetime: datetime,
         doctor_id: doctorOne.id,
       })
       .fetch()
@@ -1223,5 +1235,5 @@ test("it should not cancel a logged in patient's consultation if not within canc
 
   response.assertStatus(400)
   assert.exists(deletedConsultation)
-  assert.equal(timetables[0].scheduled, 1)
+  assert.equal(timetables[0].scheduled, true)
 })

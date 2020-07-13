@@ -10,13 +10,6 @@ class ClinicSchema extends Schema {
       table.string('name').notNullable()
       table.string('phone').notNullable()
       table.string('cnpj').notNullable().unique()
-      table
-        .integer('owner_id')
-        .unsigned()
-        .references('id')
-        .inTable('users')
-        .onUpdate('CASCADE')
-        .onDelete('SET NULL')
       table.timestamps()
     })
   }
