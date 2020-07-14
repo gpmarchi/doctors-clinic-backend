@@ -33,9 +33,9 @@ let doctorRole
 let insertUserPermission
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await File.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await File.query().delete()
   await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
@@ -57,11 +57,13 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await User.query().where('id', '>', '2').delete()
-  await Address.truncate()
-  await Specialty.truncate()
-  await Role.query().where('id', '>', '2').delete()
-  await Permission.query().where('id', '>', '1').delete()
+  await Address.query().delete()
+  await Specialty.query().delete()
+  await Role.query().whereNotIn('slug', ['administrator', 'doctor']).delete()
+  await Permission.query().whereNot('slug', 'can insert user').delete()
+  await User.query()
+    .whereNotIn('username', [`${loginUser.username}`, `${loginAdmin.username}`])
+    .delete()
 })
 
 test('it should create a new user', async ({ client, assert }) => {
@@ -258,9 +260,11 @@ test("it should create an existing user's address", async ({
 })
 
 test('it should update an existing user', async ({ client, assert }) => {
+  const userData = await Factory.model('App/Models/User').create()
+
   const response = await client
-    .patch(`/users/${loginUser.id}`)
-    .loginVia(loginUser)
+    .patch(`/users/${userData.id}`)
+    .loginVia(userData)
     .send({ username: 'username' })
     .end()
 
@@ -273,8 +277,10 @@ test('it should update an existing user if admin', async ({
   client,
   assert,
 }) => {
+  const userData = await Factory.model('App/Models/User').create()
+
   const response = await client
-    .patch(`/users/${loginUser.id}`)
+    .patch(`/users/${userData.id}`)
     .loginVia(loginAdmin)
     .send({ username: 'username' })
     .end()

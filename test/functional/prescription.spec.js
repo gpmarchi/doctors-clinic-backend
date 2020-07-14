@@ -26,7 +26,9 @@ const Diagnostic = use('App/Models/Diagnostic')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Prescription = use('App/Models/Prescription')
 
-const { test, trait, before, beforeEach } = use('Test/Suite')('Prescription')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+  'Prescription'
+)
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -39,14 +41,14 @@ let medicineOne
 let medicineTwo
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
-  await Consultation.truncate()
-  await Medicine.truncate()
-  await Condition.truncate()
-  await Diagnostic.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
   await Database.truncate('role_user')
+  await Medicine.query().delete()
+  await Condition.query().delete()
+  await Diagnostic.query().delete()
+  await Consultation.query().delete()
 
   const clinicOwner = await Factory.model('App/Models/User').create()
 
@@ -97,7 +99,19 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Prescription.truncate()
+  await Prescription.query().delete()
+})
+
+after(async () => {
+  await Prescription.query().delete()
+  await Medicine.query().delete()
+  await Diagnostic.query().delete()
+  await Condition.query().delete()
+  await Consultation.query().delete()
+  await Role.query().delete()
+  await User.query().delete()
+  await Clinic.query().delete()
+  await Database.truncate('role_user')
 })
 
 test('it should create a new prescription', async ({ client, assert }) => {

@@ -19,7 +19,7 @@ trait('Auth/Client')
 let loginUser = null
 
 before(async () => {
-  await User.truncate()
+  await User.query().delete()
 
   loginUser = await Factory.model('App/Models/User').create()
 })

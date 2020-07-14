@@ -25,10 +25,10 @@ let administrator
 let specialty
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Specialty.truncate()
-  await Surgery.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Specialty.query().delete()
+  await Surgery.query().delete()
   await Database.truncate('role_user')
 
   administrator = await Factory.model('App/Models/User').create()
@@ -42,7 +42,7 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Surgery.truncate()
+  await Surgery.query().delete()
 })
 
 test('it should create a new surgery', async ({ assert, client }) => {

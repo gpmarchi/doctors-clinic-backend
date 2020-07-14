@@ -8,7 +8,7 @@ class ExamResultSchema extends Schema {
     this.create('exam_results', (table) => {
       table.increments()
       table.text('short_report').notNullable()
-      table.date('date').notNullable()
+      table.timestamp('date').notNullable()
       table
         .integer('exam_request_id')
         .unsigned()

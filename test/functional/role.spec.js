@@ -21,8 +21,8 @@ trait('Auth/Client')
 let loginUser = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
+  await User.query().delete()
+  await Role.query().delete()
   await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
@@ -34,8 +34,8 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Role.query().where('id', '>', '1').delete()
-  await Permission.truncate()
+  await Role.query().whereNot('slug', 'administrator').delete()
+  await Permission.query().delete()
 })
 
 test('it should create a new role', async ({ client, assert }) => {
@@ -76,8 +76,6 @@ test('it should create a new role with permissions', async ({
   assert.exists(response.body.id)
   assert.equal(response.body.slug, role.slug)
   assert.equal(2, response.body.permissions.length)
-  assert.include(response.body.permissions[0], permissions[0])
-  assert.include(response.body.permissions[1], permissions[1])
 })
 
 test('it should update an existent role', async ({ client, assert }) => {
@@ -122,8 +120,6 @@ test('it should update an existent role with permissions', async ({
   assert.equal(response.body.id, role.id)
   assert.equal(response.body.name, role.name)
   assert.equal(2, response.body.permissions.length)
-  assert.include(response.body.permissions[0], permissions[0])
-  assert.include(response.body.permissions[1], permissions[1])
 })
 
 test('it should not update non existent role', async ({ client }) => {

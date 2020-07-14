@@ -22,8 +22,8 @@ trait('Auth/Client')
 let loginUser = null
 
 before(async () => {
-  await File.truncate()
-  await User.truncate()
+  await File.query().delete()
+  await User.query().delete()
 
   loginUser = await Factory.model('App/Models/User').create()
 })
@@ -61,7 +61,11 @@ test('it should create a new file', async ({ client, assert }) => {
 })
 
 test('it should download a file', async ({ client, assert }) => {
-  const response = await client.get(`/files/1`).loginVia(loginUser).end()
+  const files = (await File.query().fetch()).toJSON()
+  const response = await client
+    .get(`/files/${files[0].id}`)
+    .loginVia(loginUser)
+    .end()
 
   response.assertStatus(200)
   response.assertHeader('content-type', 'image/svg+xml')

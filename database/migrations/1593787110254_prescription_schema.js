@@ -7,8 +7,8 @@ class PrescriptionSchema extends Schema {
   up() {
     this.create('prescriptions', (table) => {
       table.increments()
-      table.date('issued_on').notNullable()
-      table.date('expires_on').notNullable()
+      table.timestamp('issued_on').notNullable()
+      table.timestamp('expires_on').notNullable()
       table.integer('medicine_amount').notNullable()
       table.integer('medicine_frequency').notNullable()
       table.string('medicine_frequency_unit').notNullable()

@@ -27,7 +27,9 @@ const ExamRequest = use('App/Models/ExamRequest')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const ExamResult = use('App/Models/ExamResult')
 
-const { test, trait, before, beforeEach } = use('Test/Suite')('Exam Result')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+  'Exam Result'
+)
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -42,14 +44,14 @@ let consultation = null
 let exams = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
-  await File.truncate()
-  await Exam.truncate()
-  await Consultation.truncate()
-  await ExamRequest.truncate()
-  await ExamResult.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
+  await File.query().delete()
+  await Consultation.query().delete()
+  await ExamResult.query().delete()
+  await ExamRequest.query().delete()
+  await Exam.query().delete()
   await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
@@ -94,11 +96,18 @@ before(async () => {
     clinic_id: clinic.id,
   })
 
-  await consultation.exams().attach(exams, (row) => (row.date = new Date()))
+  await consultation
+    .exams()
+    .attach([exams.id], (row) => (row.date = new Date()))
 })
 
 beforeEach(async () => {
-  await ExamResult.truncate()
+  await ExamResult.query().delete()
+})
+
+after(async () => {
+  await ExamResult.query().delete()
+  await ExamRequest.query().delete()
 })
 
 test('it should create an exam result', async ({ assert, client }) => {

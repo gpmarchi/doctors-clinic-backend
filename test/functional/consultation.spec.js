@@ -20,7 +20,9 @@ const Timetable = use('App/Models/Timetable')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Consultation = use('App/Models/Consultation')
 
-const { test, trait, before, beforeEach } = use('Test/Suite')('Consultation')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+  'Consultation'
+)
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -100,6 +102,15 @@ before(async () => {
 })
 
 beforeEach(async () => {
+  await Consultation.query().delete()
+  await Timetable.query().delete()
+})
+
+after(async () => {
+  await Role.query().delete()
+  await Clinic.query().delete()
+  await User.query().delete()
+  await Database.truncate('role_user')
   await Consultation.query().delete()
   await Timetable.query().delete()
 })
@@ -1097,7 +1108,7 @@ test("it should cancel a logged in patient's consultation", async ({
 
   response.assertStatus(204)
   assert.notExists(deletedConsultation)
-  assert.equal(timetables[0].scheduled, 0)
+  assert.equal(timetables[0].scheduled, false)
 })
 
 test("it should cancel any patient's consultation in my clinic if assistant", async ({

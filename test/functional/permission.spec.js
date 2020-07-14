@@ -21,8 +21,8 @@ trait('Auth/Client')
 let loginUser = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
+  await User.query().delete()
+  await Role.query().delete()
   await Database.truncate('role_user')
 
   loginUser = await Factory.model('App/Models/User').create()
@@ -33,7 +33,7 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Permission.truncate()
+  await Permission.query().delete()
 })
 
 test('it should create a new permission', async ({ client, assert }) => {

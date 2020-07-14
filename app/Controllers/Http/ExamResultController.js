@@ -172,6 +172,8 @@ class ExamResultController {
         .send({ error: antl.formatMessage('messages.update.unauthorized') })
     }
 
+    await examResult.delete()
+
     if (examResultData.report_id) {
       const report = await File.find(examResultData.report_id)
 
@@ -180,8 +182,6 @@ class ExamResultController {
       const reportData = report.toJSON()
       await Drive.delete(`${reportData.file}`)
     }
-
-    await examResult.delete()
   }
 }
 

@@ -27,10 +27,10 @@ let loginAdmin = null
 let clinicData = null
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
-  await Timetable.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
+  await Timetable.query().delete()
   await Database.truncate('role_user')
 
   const doctorRole = await Factory.model('Adonis/Acl/Role').create({
@@ -54,7 +54,7 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Timetable.truncate()
+  await Timetable.query().delete()
 })
 
 test('it should create a new timetable', async ({ client, assert }) => {
@@ -71,7 +71,10 @@ test('it should create a new timetable', async ({ client, assert }) => {
 
   response.assertStatus(200)
   assert.exists(response.body.id)
-  assert.equal(response.body.datetime, timetable.datetime)
+  assert.equal(
+    new Date(response.body.datetime).getTime(),
+    new Date(timetable.datetime).getTime()
+  )
   assert.equal(response.body.doctor_id, loginDoctorOne.id)
   assert.equal(response.body.clinic_id, timetable.clinic_id)
   assert.exists(response.body.doctor)
@@ -91,7 +94,7 @@ test('it should not create a new timetable if already registered', async ({
   })
 
   const timetableData = await Factory.model('App/Models/Timetable').make({
-    datetime: datetime.getTime(),
+    datetime: datetime,
     clinic_id: clinicData.id,
   })
   const timetable = timetableData.toJSON()
@@ -158,7 +161,10 @@ test('it should create a new timetable for doctor if admin', async ({
 
   response.assertStatus(200)
   assert.exists(response.body.id)
-  assert.equal(response.body.datetime, timetable.datetime)
+  assert.equal(
+    new Date(response.body.datetime).getTime(),
+    new Date(timetable.datetime).getTime()
+  )
   assert.equal(response.body.doctor_id, loginDoctorTwo.id)
   assert.equal(response.body.clinic_id, timetable.clinic_id)
   assert.exists(response.body.doctor)
