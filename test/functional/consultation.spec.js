@@ -156,7 +156,7 @@ test('it should create a new consultation', async ({ client, assert }) => {
   assert.exists(response.body.clinic)
   assert.exists(response.body.doctor)
   assert.exists(response.body.patient)
-  assert.equal(timetables[0].scheduled, 1)
+  assert.equal(timetables[0].scheduled, true)
 })
 
 test('it should create a new consultation by assistant', async ({

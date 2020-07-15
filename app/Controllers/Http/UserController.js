@@ -6,9 +6,11 @@
 
 const { validate } = use('Validator')
 const AddressValidator = use('App/Validators/Address')
+
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
-const Database = use('Database')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Address = use('App/Models/Address')
 
 class UserController {
   /**
@@ -47,9 +49,7 @@ class UserController {
       'permissions',
     ])
 
-    const trx = await Database.beginTransaction()
-
-    const user = await User.create(data, trx)
+    const user = await User.create(data)
 
     if (address) {
       const validation = await validate(
@@ -59,14 +59,11 @@ class UserController {
       )
 
       if (validation.fails()) {
-        trx.rollback()
         return response.status(400).send(validation.messages())
       }
 
-      await user.address().create(address, trx)
+      await user.address().create(address)
     }
-
-    trx.commit()
 
     if (roles) {
       await user.roles().attach(roles)
@@ -170,9 +167,7 @@ class UserController {
 
     user.merge(data)
 
-    const trx = await Database.beginTransaction()
-
-    await user.save(trx)
+    await user.save()
 
     if (address) {
       const validation = await validate(
@@ -182,23 +177,26 @@ class UserController {
       )
 
       if (validation.fails()) {
-        trx.rollback()
         return response.status(400).send(validation.messages())
       }
 
-      await user.address().delete(trx)
-      await user.address().create(address, trx)
+      const savedAddress = await Address.findBy('user_id', user.id)
+
+      if (savedAddress) {
+        savedAddress.merge(address)
+        await savedAddress.save()
+      } else {
+        await Address.create({ ...address, user_id: user.id })
+      }
     }
 
     if (roles) {
-      await user.roles().sync(roles, trx)
+      await user.roles().sync(roles)
     }
 
     if (permissions) {
-      await user.permissions().sync(permissions, trx)
+      await user.permissions().sync(permissions)
     }
-
-    trx.commit()
 
     await user.loadMany([
       'address',

@@ -160,24 +160,17 @@ class ConsultationController {
         .send({ error: antl.formatMessage('messages.date.already.scheduled') })
     }
 
-    const trx = await Database.beginTransaction()
-
-    const consultation = await Consultation.create(
-      {
-        datetime,
-        is_return,
-        clinic_id,
-        doctor_id,
-        patient_id: patient_id || loggedUser.id,
-      },
-      trx
-    )
+    const consultation = await Consultation.create({
+      datetime,
+      is_return,
+      clinic_id,
+      doctor_id,
+      patient_id: patient_id || loggedUser.id,
+    })
 
     const scheduledTimetable = await Timetable.find(timetable.id)
     scheduledTimetable.scheduled = true
-    await scheduledTimetable.save(trx)
-
-    trx.commit()
+    await scheduledTimetable.save()
 
     await consultation.loadMany(['clinic', 'doctor', 'patient'])
 
@@ -410,15 +403,11 @@ class ConsultationController {
         .fetch()
     ).toJSON()[0]
 
-    const trx = await Database.beginTransaction()
-
-    await consultation.delete(trx)
+    await consultation.delete()
 
     const timetable = await Timetable.find(scheduledTimetable.id)
-    timetable.scheduled = false
-    await timetable.save(trx)
-
-    trx.commit()
+    timetable.merge({ scheduled: false })
+    await timetable.save()
   }
 }
 

@@ -6,9 +6,11 @@
 
 const { validate } = use('Validator')
 const AddressValidator = use('App/Validators/Address')
+
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Clinic = use('App/Models/Clinic')
-const Database = use('Database')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Address = use('App/Models/Address')
 
 /**
  * Resourceful controller for interacting with clinics
@@ -55,9 +57,7 @@ class ClinicController {
 
     const owner = await auth.getUser()
 
-    const trx = await Database.beginTransaction()
-
-    const clinic = await Clinic.create({ ...data, owner_id: owner.id }, trx)
+    const clinic = await Clinic.create({ ...data, owner_id: owner.id })
 
     if (address) {
       const validation = await validate(
@@ -67,14 +67,11 @@ class ClinicController {
       )
 
       if (validation.fails()) {
-        trx.rollback()
         return response.status(400).send(validation.messages())
       }
 
-      await clinic.address().create(address, trx)
+      await clinic.address().create(address)
     }
-
-    trx.commit()
 
     if (specialties) {
       await clinic.specialties().attach(specialties)
@@ -151,9 +148,7 @@ class ClinicController {
 
     clinic.merge(data)
 
-    const trx = await Database.beginTransaction()
-
-    await clinic.save(trx)
+    await clinic.save()
 
     if (address) {
       const validation = await validate(
@@ -163,19 +158,22 @@ class ClinicController {
       )
 
       if (validation.fails()) {
-        trx.rollback()
         return response.status(400).send(validation.messages())
       }
 
-      await clinic.address().delete(trx)
-      await clinic.address().create(address, trx)
+      const savedAddress = await Address.findBy('clinic_id', clinic.id)
+
+      if (savedAddress) {
+        savedAddress.merge(address)
+        await savedAddress.save()
+      } else {
+        await Address.create({ ...address, clinic_id: clinic.id })
+      }
     }
 
     if (specialties) {
-      await clinic.specialties().sync(specialties, trx)
+      await clinic.specialties().sync(specialties)
     }
-
-    trx.commit()
 
     await clinic.loadMany(['address', 'owner', 'specialties'])
 

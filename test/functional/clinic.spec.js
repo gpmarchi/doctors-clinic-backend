@@ -40,14 +40,15 @@ before(async () => {
 
   loginAdminTwo = await Factory.model('App/Models/User').create()
 
-  await loginAdminOne.roles().attach([adminRole.toJSON().id])
-  await loginAdminTwo.roles().attach([adminRole.toJSON().id])
+  await loginAdminOne.roles().attach([adminRole.id])
+  await loginAdminTwo.roles().attach([adminRole.id])
 })
 
 beforeEach(async () => {
   await Address.query().delete()
-  await Clinic.query().delete()
+  await Database.truncate('clinic_specialty')
   await Specialty.query().delete()
+  await Clinic.query().delete()
 })
 
 test('it should create a new clinic', async ({ client, assert }) => {
@@ -99,7 +100,7 @@ test('it should create a new clinic with address', async ({
   const addressData = await Factory.model('App/Models/Address').make()
 
   const clinic = clinicData.toJSON()
-  const address = { ...addressData.toJSON() }
+  const address = addressData.toJSON()
 
   const response = await client
     .post('/clinics')
@@ -142,7 +143,7 @@ test("it should create an existing clinic's address", async ({
   })
 
   const addressData = await Factory.model('App/Models/Address').make()
-  const address = { ...addressData.toJSON() }
+  const address = addressData.toJSON()
 
   const response = await client
     .patch(`/clinics/${clinicData.id}`)
