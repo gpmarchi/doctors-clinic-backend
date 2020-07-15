@@ -95,6 +95,8 @@ class DiagnosticController {
       operation_date,
     })
 
+    await diagnostic.load('prescriptions')
+
     return diagnostic
   }
 
@@ -170,6 +172,8 @@ class DiagnosticController {
 
     await diagnostic.save()
 
+    await diagnostic.load('prescriptions')
+
     return diagnostic
   }
 
@@ -180,8 +184,29 @@ class DiagnosticController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, request, response, antl, auth }) {
+    const diagnostic = await Diagnostic.find(params.id)
+
+    if (!diagnostic) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.consultation.diagnostic.not.found'),
+      })
+    }
+
+    const loggedUser = await auth.getUser()
+
+    const consultation = await Consultation.find(diagnostic.consultation_id)
+
+    if (loggedUser.id !== consultation.toJSON().doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.delete.unauthorized') })
+    }
+
+    await diagnostic.delete()
+  }
 }
 
 module.exports = DiagnosticController

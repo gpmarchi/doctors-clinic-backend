@@ -21,8 +21,14 @@ const Surgery = use('App/Models/Surgery')
 const Consultation = use('App/Models/Consultation')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Diagnostic = use('App/Models/Diagnostic')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Prescription = use('App/Models/Prescription')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Medicine = use('App/Models/Medicine')
 
-const { test, trait, before, beforeEach } = use('Test/Suite')('Diagnostic')
+const { test, trait, before, beforeEach, after } = use('Test/Suite')(
+  'Diagnostic'
+)
 
 trait('Test/ApiClient')
 trait('Auth/Client')
@@ -36,12 +42,14 @@ let conditionTwo
 let surgery
 
 before(async () => {
-  await User.truncate()
-  await Role.truncate()
-  await Clinic.truncate()
-  await Consultation.truncate()
-  await Surgery.truncate()
-  await Condition.truncate()
+  await User.query().delete()
+  await Role.query().delete()
+  await Clinic.query().delete()
+  await Consultation.query().delete()
+  await Surgery.query().delete()
+  await Condition.query().delete()
+  await Prescription.query().delete()
+  await Medicine.query().delete()
   await Database.truncate('role_user')
 
   const clinicOwner = await Factory.model('App/Models/User').create()
@@ -92,7 +100,20 @@ before(async () => {
 })
 
 beforeEach(async () => {
-  await Diagnostic.truncate()
+  await Diagnostic.query().delete()
+})
+
+after(async () => {
+  await Surgery.query().delete()
+  await Prescription.query().delete()
+  await Medicine.query().delete()
+  await Diagnostic.query().delete()
+  await Consultation.query().delete()
+  await Condition.query().delete()
+  await Role.query().delete()
+  await User.query().delete()
+  await Clinic.query().delete()
+  await Database.truncate('role_user')
 })
 
 test('it should create a new diagnostic', async ({ assert, client }) => {
@@ -282,6 +303,14 @@ test('it should update an existing diagnostic', async ({ assert, client }) => {
     condition_id: conditionOne.id,
   })
 
+  const medicine = await Factory.model('App/Models/Medicine').create()
+
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicine.id,
+    diagnostic_id: diagnostic.id,
+  })
+
   const diagnosticData = diagnostic.toJSON()
   diagnosticData.report = 'updated report content'
 
@@ -296,6 +325,7 @@ test('it should update an existing diagnostic', async ({ assert, client }) => {
   assert.equal(response.body.report, diagnosticData.report)
   assert.equal(response.body.consultation_id, diagnosticData.consultation_id)
   assert.equal(response.body.condition_id, diagnosticData.condition_id)
+  assert.exists(response.body.prescriptions)
 })
 
 test("it should update an existing diagnostic's condition", async ({
@@ -510,4 +540,66 @@ test("it should not update an existing diagnostic without surgery's operation da
   assert.equal(unchangedDiagnostic.condition_id, diagnosticData.condition_id)
   assert.notExists(unchangedDiagnostic.surgery_id)
   assert.notExists(unchangedDiagnostic.operation_date)
+})
+
+test("it should remove a doctor's diagnostic", async ({ client, assert }) => {
+  const diagnostic = await Factory.model('App/Models/Diagnostic').create({
+    consultation_id: consultation.id,
+    condition_id: conditionOne.id,
+  })
+
+  const medicine = await Factory.model('App/Models/Medicine').create()
+
+  const prescription = await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicine.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .delete(`/diagnostics/${diagnostic.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  const deletedDiagnostic = await Diagnostic.find(diagnostic.id)
+  const deletedPrescription = await Prescription.find(prescription.id)
+
+  response.assertStatus(204)
+  assert.notExists(deletedDiagnostic)
+  assert.notExists(deletedPrescription)
+})
+
+test('it should not remove an inexistent diagnostic', async ({
+  client,
+  assert,
+}) => {
+  const response = await client
+    .delete('/diagnostics/-1')
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not remove another doctor's diagnostic", async ({
+  client,
+  assert,
+}) => {
+  const diagnostic = await Factory.model('App/Models/Diagnostic').create({
+    consultation_id: consultation.id,
+    condition_id: conditionOne.id,
+  })
+
+  const response = await client
+    .delete(`/diagnostics/${diagnostic.id}`)
+    .loginVia(doctorTwo)
+    .send()
+    .end()
+
+  const originalDiagnostic = await Diagnostic.find(diagnostic.id)
+
+  response.assertStatus(401)
+  assert.exists(originalDiagnostic)
 })
