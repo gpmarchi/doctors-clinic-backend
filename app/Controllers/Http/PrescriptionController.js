@@ -241,10 +241,35 @@ class PrescriptionController {
    * DELETE prescriptions/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, response, antl, auth }) {
+    const prescription = await Prescription.find(params.id)
+
+    if (!prescription) {
+      return response
+        .status(404)
+        .send({ error: antl.formatMessage('messages.prescription.not.found') })
+    }
+
+    const diagnostic = await Diagnostic.query()
+      .where('id', prescription.diagnostic_id)
+      .with('consultation')
+      .fetch()
+
+    const diagnosticData = diagnostic.toJSON()[0]
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== diagnosticData.consultation.doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.delete.unauthorized') })
+    }
+
+    await prescription.delete()
+  }
 }
 
 module.exports = PrescriptionController

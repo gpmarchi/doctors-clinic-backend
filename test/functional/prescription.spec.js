@@ -690,3 +690,57 @@ test('it should not update prescription if medicine frequency unit is invalid', 
     unchangedPrescriptionData.diagnostic_id
   )
 })
+
+test('it should delete a prescription', async ({ client, assert }) => {
+  const prescription = await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .delete(`/prescriptions/${prescription.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  const deletedPrescription = await Prescription.find(prescription.id)
+
+  response.assertStatus(204)
+  assert.notExists(deletedPrescription)
+})
+
+test('it should not delete inexistent prescription', async ({
+  client,
+  assert,
+}) => {
+  const response = await client
+    .delete('/prescriptions/-1')
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not delete another doctor's prescription", async ({
+  client,
+  assert,
+}) => {
+  const prescription = await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .delete(`/prescriptions/${prescription.id}`)
+    .loginVia(doctorTwo)
+    .send()
+    .end()
+
+  const deletedPrescription = await Prescription.find(prescription.id)
+
+  response.assertStatus(401)
+  assert.exists(deletedPrescription)
+})
