@@ -5,6 +5,7 @@
   "enum.medicine.frequency.unit.hour": "Hour(s)",
 
   "insert.unauthorized": "Access forbidden. You are not authorized to create this resource.",
+  "list.unauthorized": "Access forbidden. You are not authorized to list this resource.",
   "show.unauthorized": "Access forbidden. You are not authorized to view this resource.",
   "update.unauthorized": "Access forbidden. You are not authorized to update this resource.",
   "delete.unauthorized": "Access forbidden. You are not authorized to remove this resource.",
@@ -18,6 +19,7 @@
   "patient.id.required": "Patient identification number required.",
   "specialty.not.found": "Specialty not found.",
   "specialty.not.provided": "Please provide the specialty.",
+  "diagnostic.not.provided": "Please provide the diagnostic.",
   "role.not.found": "Role not found.",
   "permission.not.found": "Permission not found.",
   "clinic.not.found": "Clinic not found.",

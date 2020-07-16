@@ -24,8 +24,45 @@ class PrescriptionController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async index({ request, response }) {}
+  async index({ request, response, antl, auth }) {
+    const { diagnostic_id } = request.get()
+
+    if (!diagnostic_id) {
+      return response.status(400).send({
+        error: antl.formatMessage('messages.diagnostic.not.provided'),
+      })
+    }
+
+    const diagnostic = await Diagnostic.query()
+      .where('id', diagnostic_id)
+      .with('consultation')
+      .fetch()
+
+    const diagnosticData = diagnostic.toJSON()[0]
+
+    if (!diagnosticData) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.consultation.diagnostic.not.found'),
+      })
+    }
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== diagnosticData.consultation.doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.list.unauthorized') })
+    }
+
+    const prescriptions = await Prescription.query()
+      .where('diagnostic_id', diagnostic_id)
+      .with('medicine')
+      .fetch()
+
+    return prescriptions
+  }
 
   /**
    * Create/save a new prescription.

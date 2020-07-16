@@ -744,3 +744,94 @@ test("it should not delete another doctor's prescription", async ({
   response.assertStatus(401)
   assert.exists(deletedPrescription)
 })
+
+test("it should list all diagnostic's prescriptions", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineTwo.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .get('/prescriptions')
+    .loginVia(doctorOne)
+    .query({ diagnostic_id: diagnostic.id })
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(2, response.body.length)
+})
+
+test("it should not list all diagnostic's prescriptions if diagnostic id not provided", async ({
+  client,
+}) => {
+  const response = await client
+    .get('/prescriptions')
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(400)
+})
+
+test("it should not list all diagnostic's prescriptions if invalid diagnostic id provided", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineTwo.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .get('/prescriptions')
+    .loginVia(doctorOne)
+    .query({ diagnostic_id: -1 })
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not list another doctor diagnostic's prescriptions", async ({
+  client,
+  assert,
+}) => {
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineTwo.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .get('/prescriptions')
+    .loginVia(doctorTwo)
+    .query({ diagnostic_id: diagnostic.id })
+    .send()
+    .end()
+
+  response.assertStatus(401)
+})
