@@ -835,3 +835,74 @@ test("it should not list another doctor diagnostic's prescriptions", async ({
 
   response.assertStatus(401)
 })
+
+test("it should show a diagnostic's prescription by id", async ({
+  client,
+  assert,
+}) => {
+  const prescription = await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .get(`/prescriptions/${prescription.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, prescription.id)
+  assert.equal(
+    new Date(response.body.issued_on).getTime(),
+    new Date(prescription.issued_on).getTime()
+  )
+  assert.equal(
+    new Date(response.body.expires_on).getTime(),
+    new Date(prescription.expires_on).getTime()
+  )
+  assert.equal(response.body.medicine_amount, prescription.medicine_amount)
+  assert.equal(
+    response.body.medicine_frequency,
+    prescription.medicine_frequency
+  )
+  assert.equal(
+    response.body.medicine_frequency_unit,
+    prescription.medicine_frequency_unit
+  )
+  assert.equal(response.body.diagnostic_id, prescription.diagnostic_id)
+  assert.exists(response.body.medicine)
+})
+
+test("it should not show an inexistent diagnostic's prescription", async ({
+  client,
+  assert,
+}) => {
+  const response = await client
+    .get('/prescriptions/-1')
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not show another doctor's diagnostic prescription", async ({
+  client,
+  assert,
+}) => {
+  const prescription = await Factory.model('App/Models/Prescription').create({
+    issued_on: new Date(),
+    medicine_id: medicineOne.id,
+    diagnostic_id: diagnostic.id,
+  })
+
+  const response = await client
+    .get(`/prescriptions/${prescription.id}`)
+    .loginVia(doctorTwo)
+    .send()
+    .end()
+
+  response.assertStatus(401)
+})

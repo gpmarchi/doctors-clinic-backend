@@ -165,10 +165,39 @@ class PrescriptionController {
    * GET prescriptions/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async show({ params, request, response }) {}
+  async show({ params, response, antl, auth }) {
+    const prescription = await Prescription.find(params.id)
+
+    if (!prescription) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.prescription.not.found'),
+      })
+    }
+
+    const prescriptionData = prescription.toJSON()
+
+    const diagnostic = await Diagnostic.query()
+      .where('id', prescriptionData.diagnostic_id)
+      .with('consultation')
+      .fetch()
+
+    const diagnosticData = diagnostic.toJSON()[0]
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== diagnosticData.consultation.doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.list.unauthorized') })
+    }
+
+    await prescription.load('medicine')
+
+    return prescription
+  }
 
   /**
    * Update prescription details.
