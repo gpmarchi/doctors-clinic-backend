@@ -40,6 +40,10 @@ class Consultation extends Model {
   diagnostic() {
     return this.hasOne('App/Models/Diagnostic')
   }
+
+  referral() {
+    return this.hasOne('App/Models/Referral')
+  }
 }
 
 module.exports = Consultation

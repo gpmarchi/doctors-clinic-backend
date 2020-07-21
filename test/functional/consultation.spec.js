@@ -37,6 +37,7 @@ let clinicOwnerOne
 let clinicOwnerTwo
 let clinicOne
 let clinicTwo
+let referralSpecialty
 
 const datetime = new Date()
 
@@ -72,6 +73,8 @@ before(async () => {
   const adminRole = await Factory.model('Adonis/Acl/Role').create({
     slug: 'administrator',
   })
+
+  referralSpecialty = await Factory.model('App/Models/Specialty').create()
 
   const specialtyOne = await Factory.model('App/Models/Specialty').create()
   const specialtyTwo = await Factory.model('App/Models/Specialty').create()
@@ -994,6 +997,36 @@ test("it should show doctor's consultation by id if doctor", async ({
   assert.exists(response.body.clinic)
   assert.isEmpty(response.body.exams)
   assert.notExists(response.body.diagnostic)
+})
+
+test("it should show a consultation's referral", async ({ assert, client }) => {
+  const consultation = await Factory.model('App/Models/Consultation').create({
+    datetime,
+    clinic_id: clinicOne.id,
+    doctor_id: doctorOne.id,
+    patient_id: patientOne.id,
+    is_return: false,
+  })
+
+  await Factory.model('App/Models/Referral').create({
+    specialty_id: referralSpecialty.id,
+    consultation_id: consultation.id,
+  })
+
+  const response = await client
+    .get(`/consultations/${consultation.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(200)
+  assert.equal(response.body.id, consultation.id)
+  assert.exists(response.body.patient)
+  assert.exists(response.body.doctor)
+  assert.exists(response.body.clinic)
+  assert.isEmpty(response.body.exams)
+  assert.notExists(response.body.diagnostic)
+  assert.exists(response.body.referral)
 })
 
 test('it should not show inexistent consultation', async ({ client }) => {

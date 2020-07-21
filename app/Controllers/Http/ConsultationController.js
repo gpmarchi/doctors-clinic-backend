@@ -231,6 +231,7 @@ class ConsultationController {
       'clinic',
       'exams',
       'diagnostic',
+      'referral',
     ])
 
     return consultation

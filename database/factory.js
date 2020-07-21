@@ -159,3 +159,10 @@ Factory.blueprint('App/Models/Prescription', (faker, i, data = {}) => {
     ...data,
   }
 })
+
+Factory.blueprint('App/Models/Referral', (faker, i, data = {}) => {
+  return {
+    date: faker.date(),
+    ...data,
+  }
+})

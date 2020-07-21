@@ -83,6 +83,16 @@ Route.group(() => {
     'is:doctor'
   )
 
+  Route.post('/referrals', 'ReferralController.store')
+    .validator('Referral')
+    .middleware('is:doctor')
+  Route.patch('/referrals/:id', 'ReferralController.update').middleware(
+    'is:doctor'
+  )
+  Route.delete('/referrals/:id', 'ReferralController.destroy').middleware(
+    'is:doctor'
+  )
+
   Route.resource('specialties', 'SpecialtyController')
     .apiOnly()
     .except(['index', 'show'])
