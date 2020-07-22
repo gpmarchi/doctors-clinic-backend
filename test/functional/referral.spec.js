@@ -27,7 +27,8 @@ let doctorOne
 let doctorTwo
 let patient
 let consultation
-let referralSpecialty
+let referralSpecialtyOne
+let referralSpecialtyTwo
 
 before(async () => {
   await User.query().delete()
@@ -50,7 +51,8 @@ before(async () => {
     slug: 'patient',
   })
 
-  referralSpecialty = await Factory.model('App/Models/Specialty').create()
+  referralSpecialtyOne = await Factory.model('App/Models/Specialty').create()
+  referralSpecialtyTwo = await Factory.model('App/Models/Specialty').create()
 
   const specialty = await Factory.model('App/Models/Specialty').create()
 
@@ -89,7 +91,7 @@ after(async () => {
 
 test('it should create a new referral', async ({ assert, client }) => {
   const referral = await Factory.model('App/Models/Referral').make({
-    specialty_id: referralSpecialty.id,
+    specialty_id: referralSpecialtyOne.id,
     consultation_id: consultation.id,
   })
 
@@ -133,7 +135,7 @@ test('it should not create a new referral with inexistent consultation', async (
   client,
 }) => {
   const referral = await Factory.model('App/Models/Referral').make({
-    specialty_id: referralSpecialty.id,
+    specialty_id: referralSpecialtyOne.id,
     consultation_id: -1,
   })
 
@@ -153,7 +155,7 @@ test("it should not create a new referral to another doctor's consultation", asy
   client,
 }) => {
   const referral = await Factory.model('App/Models/Referral').make({
-    specialty_id: referralSpecialty.id,
+    specialty_id: referralSpecialtyOne.id,
     consultation_id: consultation.id,
   })
 
@@ -166,4 +168,90 @@ test("it should not create a new referral to another doctor's consultation", asy
     .end()
 
   response.assertStatus(401)
+})
+
+test('it should update an existing referral', async ({ assert, client }) => {
+  const referral = await Factory.model('App/Models/Referral').create({
+    specialty_id: referralSpecialtyOne.id,
+    consultation_id: consultation.id,
+  })
+
+  const response = await client
+    .patch(`/referrals/${referral.id}`)
+    .loginVia(doctorOne)
+    .send({ specialty_id: referralSpecialtyTwo.id })
+    .end()
+
+  response.assertStatus(200)
+  assert.exists(response.body.id)
+  assert.exists(response.body.date)
+  assert.equal(response.body.specialty_id, referralSpecialtyTwo.id)
+  assert.equal(response.body.consultation_id, consultation.id)
+})
+
+test('it should not update an inexisting referral', async ({
+  assert,
+  client,
+}) => {
+  const response = await client
+    .patch('/referrals/-1')
+    .loginVia(doctorOne)
+    .send({ specialty_id: referralSpecialtyTwo.id })
+    .end()
+
+  response.assertStatus(404)
+})
+
+test('it should not update an existing referral with inexisting specialty', async ({
+  assert,
+  client,
+}) => {
+  const referral = await Factory.model('App/Models/Referral').create({
+    specialty_id: referralSpecialtyOne.id,
+    consultation_id: consultation.id,
+  })
+
+  const response = await client
+    .patch(`/referrals/${referral.id}`)
+    .loginVia(doctorOne)
+    .send({ specialty_id: -1 })
+    .end()
+
+  const unchangedReferral = await Referral.find(referral.id)
+
+  response.assertStatus(404)
+  assert.equal(referral.id, unchangedReferral.id)
+  assert.equal(
+    new Date(referral.date).getTime(),
+    new Date(unchangedReferral.date).getTime()
+  )
+  assert.equal(referral.specialty_id, unchangedReferral.specialty_id)
+  assert.equal(referral.consultation_id, unchangedReferral.consultation_id)
+})
+
+test("it should not update another doctor's referral", async ({
+  assert,
+  client,
+}) => {
+  const referral = await Factory.model('App/Models/Referral').create({
+    specialty_id: referralSpecialtyOne.id,
+    consultation_id: consultation.id,
+  })
+
+  const response = await client
+    .patch(`/referrals/${referral.id}`)
+    .loginVia(doctorTwo)
+    .send({ specialty_id: referralSpecialtyTwo.id })
+    .end()
+
+  const unchangedReferral = await Referral.find(referral.id)
+
+  response.assertStatus(401)
+  assert.equal(referral.id, unchangedReferral.id)
+  assert.equal(
+    new Date(referral.date).getTime(),
+    new Date(unchangedReferral.date).getTime()
+  )
+  assert.equal(referral.specialty_id, unchangedReferral.specialty_id)
+  assert.equal(referral.consultation_id, unchangedReferral.consultation_id)
 })

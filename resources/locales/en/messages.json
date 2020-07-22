@@ -47,5 +47,6 @@
   "prescription.invalid.expiration.date": "Invalid expiration date.",
   "prescription.invalid.medication.frequency": "Invalid medication amount or frequency.",
   "prescription.invalid.medication.frequency.unit": "Invalid medication frequency unit.",
-  "prescription.not.found": "Prescription not found."
+  "prescription.not.found": "Prescription not found.",
+  "referral.not.found": "Referral not found."
 }

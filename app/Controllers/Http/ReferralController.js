@@ -21,6 +21,7 @@ class ReferralController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
   async store({ request, response, antl, auth }) {
     const { specialty_id, consultation_id } = request.all()
@@ -65,8 +66,43 @@ class ReferralController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response, antl, auth }) {
+    const specialty_id = request.input('specialty_id')
+
+    const referral = await Referral.find(params.id)
+
+    if (!referral) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.referral.not.found'),
+      })
+    }
+
+    const specialty = await Specialty.find(specialty_id)
+
+    if (!specialty) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.specialty.not.found'),
+      })
+    }
+
+    const consultation = await Consultation.find(referral.consultation_id)
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== consultation.doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.insert.unauthorized') })
+    }
+
+    referral.merge({ specialty_id })
+
+    await referral.save()
+
+    return referral
+  }
 
   /**
    * Delete a referral with id.
