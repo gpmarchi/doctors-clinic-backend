@@ -94,7 +94,7 @@ class ReferralController {
     if (loggedUser.id !== consultation.doctor_id) {
       return response
         .status(401)
-        .send({ error: antl.formatMessage('messages.insert.unauthorized') })
+        .send({ error: antl.formatMessage('messages.update.unauthorized') })
     }
 
     referral.merge({ specialty_id })
@@ -111,8 +111,29 @@ class ReferralController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {AuthSession} ctx.auth
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, request, response, antl, auth }) {
+    const referral = await Referral.find(params.id)
+
+    if (!referral) {
+      return response.status(404).send({
+        error: antl.formatMessage('messages.referral.not.found'),
+      })
+    }
+
+    const consultation = await Consultation.find(referral.consultation_id)
+
+    const loggedUser = await auth.getUser()
+
+    if (loggedUser.id !== consultation.doctor_id) {
+      return response
+        .status(401)
+        .send({ error: antl.formatMessage('messages.delete.unauthorized') })
+    }
+
+    await referral.delete()
+  }
 }
 
 module.exports = ReferralController

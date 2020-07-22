@@ -255,3 +255,52 @@ test("it should not update another doctor's referral", async ({
   assert.equal(referral.specialty_id, unchangedReferral.specialty_id)
   assert.equal(referral.consultation_id, unchangedReferral.consultation_id)
 })
+
+test('it should remove an existing referral', async ({ assert, client }) => {
+  const referral = await Factory.model('App/Models/Referral').create({
+    specialty_id: referralSpecialtyOne.id,
+    consultation_id: consultation.id,
+  })
+
+  const response = await client
+    .delete(`/referrals/${referral.id}`)
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  const deletedReferral = await Referral.find(referral.id)
+
+  response.assertStatus(204)
+  assert.notExists(deletedReferral)
+})
+
+test('it should not remove inexisting referral', async ({ assert, client }) => {
+  const response = await client
+    .delete('/referrals/-1')
+    .loginVia(doctorOne)
+    .send()
+    .end()
+
+  response.assertStatus(404)
+})
+
+test("it should not remove another doctor's referral", async ({
+  assert,
+  client,
+}) => {
+  const referral = await Factory.model('App/Models/Referral').create({
+    specialty_id: referralSpecialtyOne.id,
+    consultation_id: consultation.id,
+  })
+
+  const response = await client
+    .delete(`/referrals/${referral.id}`)
+    .loginVia(doctorTwo)
+    .send()
+    .end()
+
+  const originalReferral = await Referral.find(referral.id)
+
+  response.assertStatus(401)
+  assert.exists(originalReferral)
+})
