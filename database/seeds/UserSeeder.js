@@ -23,8 +23,8 @@ class UserSeeder {
 
     const admin = await Factory.model('App/Models/User').create({
       username: 'admin',
-      email: 'administrator@gmail.com',
-      password: '1234',
+      email: 'admin@doctorsclinic.com',
+      password: '123456',
       first_name: 'Administrator',
       last_name: '',
       birthdate: '01-01-1970',
